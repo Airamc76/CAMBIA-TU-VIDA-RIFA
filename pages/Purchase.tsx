@@ -218,11 +218,12 @@ const Purchase: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Método Utilizado</label>
-                <select className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all" value={form.paymentMethod} onChange={e => setForm({ ...form, paymentMethod: e.target.value })}>
+                <select
+                  className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all opacity-75 cursor-not-allowed"
+                  value={form.paymentMethod}
+                  disabled
+                >
                   <option value="pago_movil">Pago Móvil</option>
-                  <option value="transferencia">Transferencia Bancaria</option>
-                  <option value="binance">Binance Pay (USDT)</option>
-                  <option value="zelle">Zelle</option>
                 </select>
               </div>
               <Input label="Código de Referencia" required placeholder="Últimos 4-6 dígitos" value={form.reference} onChange={e => setForm({ ...form, reference: e.target.value })} />
