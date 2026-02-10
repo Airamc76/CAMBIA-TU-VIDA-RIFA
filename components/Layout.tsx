@@ -189,13 +189,13 @@ export const Footer: React.FC = () => {
             {/* Lottery Logos */}
             <div className="flex items-center justify-center gap-8 flex-wrap">
               <div className="text-center">
-                <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Avalado por:</div>
+                <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Avalado por:</div>
                 <div className="flex items-center gap-6">
-                  <div className="bg-white p-3 rounded-xl shadow-md border border-slate-100">
-                    <span className="text-xs font-black text-slate-600 uppercase">Lotería del Táchira</span>
+                  <div className="bg-white p-2 rounded-xl shadow-md border border-slate-100">
+                    <img src="/loteria_tachira.png" alt="Lotería del Táchira" className="h-16 w-auto object-contain" />
                   </div>
-                  <div className="bg-white p-3 rounded-xl shadow-md border border-slate-100">
-                    <span className="text-xs font-black text-slate-600 uppercase">Super Gana</span>
+                  <div className="bg-white p-2 rounded-xl shadow-md border border-slate-100">
+                    <img src="/super_gana.png" alt="Super Gana" className="h-16 w-auto object-contain" />
                   </div>
                 </div>
               </div>
