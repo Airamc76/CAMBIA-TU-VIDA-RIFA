@@ -33,8 +33,8 @@ const RaffleBookCard: React.FC<{
 
   const positionClasses = {
     active: 'z-30 opacity-100 scale-100 translate-x-[-50%] rotate-0 shadow-[0_30px_70px_rgba(0,0,0,0.15)]',
-    next: 'z-20 opacity-70 scale-[0.88] translate-x-[5%] md:translate-x-[15%] rotate-y-[-20deg] blur-[0.5px] pointer-events-none',
-    hidden: 'z-10 opacity-40 scale-[0.75] translate-x-[50%] md:translate-x-[65%] rotate-y-[-30deg] blur-[2px] pointer-events-none',
+    next: 'z-20 opacity-70 scale-[0.88] translate-x-[15%] md:translate-x-[10%] rotate-y-[-20deg] blur-[0.5px] pointer-events-none',
+    hidden: 'z-10 opacity-40 scale-[0.75] translate-x-[50%] md:translate-x-[70%] rotate-y-[-30deg] blur-[2px] pointer-events-none',
     prev: 'z-0 opacity-0 scale-90 translate-x-[-150%] rotate-y-[20deg] pointer-events-none'
   };
 
