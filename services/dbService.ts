@@ -247,7 +247,8 @@ export const dbService = {
   },
 
   async deleteRaffle(id: string) {
-    await supabase.from('raffles').delete().eq('id', id);
+    const { error } = await supabase.from('raffles').update({ status: 'deleted' }).eq('id', id);
+    if (error) throw error;
   },
 
   async uploadRaffleImage(file: File) {

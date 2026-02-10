@@ -125,8 +125,9 @@ const Home: React.FC = () => {
   const dragStart = useRef<number | null>(null);
 
   const allRaffles = useMemo(() => {
-    const active = raffles.filter(r => r.status === RaffleStatus.ACTIVA && (r.total_tickets - (r.sold_tickets || 0)) >= 4);
-    const past = raffles.filter(r => r.status !== RaffleStatus.ACTIVA || (r.total_tickets - (r.sold_tickets || 0)) < 4);
+    const visible = raffles.filter(r => r.status !== RaffleStatus.ELIMINADA);
+    const active = visible.filter(r => r.status === RaffleStatus.ACTIVA && (r.total_tickets - (r.sold_tickets || 0)) >= 4);
+    const past = visible.filter(r => r.status !== RaffleStatus.ACTIVA || (r.total_tickets - (r.sold_tickets || 0)) < 4);
     return [...active, ...past];
   }, [raffles]);
 

@@ -176,7 +176,7 @@ const ManageRaffles: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-        {raffles.map(r => (
+        {raffles.filter(r => r.status !== RaffleStatus.ELIMINADA).map(r => (
           <div key={r.id} className="bg-white p-8 rounded-[3.5rem] border border-slate-200 hover:shadow-2xl transition-all group flex flex-col gap-8 shadow-sm">
             <div className="relative h-56 rounded-[2.5rem] overflow-hidden bg-slate-100">
               <img src={r.cover_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
