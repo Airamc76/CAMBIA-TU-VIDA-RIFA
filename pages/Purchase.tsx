@@ -16,7 +16,7 @@ const Purchase: React.FC = () => {
     name: '',
     email: '',
     whatsapp: '',
-    count: 4,
+    count: 3,
     paymentMethod: 'pago_movil',
     reference: '',
     file: null as File | null
@@ -30,9 +30,9 @@ const Purchase: React.FC = () => {
 
   const remaining = Math.max(0, raffle.total_tickets - (raffle.sold_tickets || 0));
   const leftAfterPurchase = remaining - form.count;
-  const isLeavingOrphans = leftAfterPurchase > 0 && leftAfterPurchase < 4;
+  const isLeavingOrphans = leftAfterPurchase > 0 && leftAfterPurchase < 3;
   const isOverStock = form.count > remaining;
-  const isInvalidAmount = isOverStock || isLeavingOrphans || form.count < 4;
+  const isInvalidAmount = isOverStock || isLeavingOrphans || form.count < 3;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,7 +190,7 @@ const Purchase: React.FC = () => {
             <div className="space-y-4 bg-blue-50/50 p-8 rounded-[2.5rem] border border-blue-100/50">
               <label className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] block text-center">¿Cuántos tickets compraste?</label>
               <div className="flex items-center justify-center gap-5">
-                <button type="button" onClick={() => setForm({ ...form, count: Math.max(4, form.count - 1) })} className="w-12 h-12 rounded-xl bg-white border border-blue-100 text-blue-600 font-black text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">-</button>
+                <button type="button" onClick={() => setForm({ ...form, count: Math.max(3, form.count - 1) })} className="w-12 h-12 rounded-xl bg-white border border-blue-100 text-blue-600 font-black text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">-</button>
                 <div className="flex flex-col items-center">
                   <input
                     type="number"
@@ -206,7 +206,7 @@ const Purchase: React.FC = () => {
 
               <div className="text-[9px] font-black uppercase tracking-widest text-center">
                 {isLeavingOrphans ? (
-                  <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Compra {remaining} o deja al menos 4.</span>
+                  <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Compra {remaining} o deja al menos 3.</span>
                 ) : isOverStock ? (
                   <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Máximo {remaining} disponibles.</span>
                 ) : (

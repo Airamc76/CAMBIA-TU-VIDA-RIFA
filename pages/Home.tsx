@@ -12,7 +12,7 @@ const RaffleBookCard: React.FC<{
   const remainingTickets = Math.max(0, (raffle.total_tickets || 0) - (raffle.sold_tickets || 0));
 
   // Lógica de Agotado
-  const isActuallySoldOut = remainingTickets < 4 || isPast;
+  const isActuallySoldOut = remainingTickets < 3 || isPast;
 
   const progress = isActuallySoldOut
     ? 0
@@ -126,8 +126,8 @@ const Home: React.FC = () => {
 
   const allRaffles = useMemo(() => {
     const visible = raffles.filter(r => r.status !== RaffleStatus.ELIMINADA);
-    const active = visible.filter(r => r.status === RaffleStatus.ACTIVA && (r.total_tickets - (r.sold_tickets || 0)) >= 4);
-    const past = visible.filter(r => r.status !== RaffleStatus.ACTIVA || (r.total_tickets - (r.sold_tickets || 0)) < 4);
+    const active = visible.filter(r => r.status === RaffleStatus.ACTIVA && (r.total_tickets - (r.sold_tickets || 0)) >= 3);
+    const past = visible.filter(r => r.status !== RaffleStatus.ACTIVA || (r.total_tickets - (r.sold_tickets || 0)) < 3);
     return [...active, ...past];
   }, [raffles]);
 
@@ -235,7 +235,7 @@ const Home: React.FC = () => {
               raffle={raffle}
               position={pos}
               // Fixed: Cannot find name 'r'. Replaced 'r' with 'raffle'.
-              isPast={raffle.status !== RaffleStatus.ACTIVA || (raffle.total_tickets - (raffle.sold_tickets || 0)) < 4}
+              isPast={raffle.status !== RaffleStatus.ACTIVA || (raffle.total_tickets - (raffle.sold_tickets || 0)) < 3}
             />
           );
         })}
