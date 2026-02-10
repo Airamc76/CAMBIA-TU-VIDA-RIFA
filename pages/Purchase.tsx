@@ -167,6 +167,19 @@ const Purchase: React.FC = () => {
             <p className="text-slate-400 font-bold text-sm">Completa tus datos para confirmar tu participación.</p>
           </div>
 
+          {/* Warning: Verify Contact Information */}
+          <div className="mb-6 p-6 bg-amber-50 border-2 border-amber-200 text-amber-900 rounded-3xl font-bold text-sm flex items-start gap-4 animate-in slide-in-from-top duration-300">
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <div className="flex-1">
+              <div className="font-black uppercase tracking-wide text-xs mb-1">⚠️ Verifica tus datos antes de enviar</div>
+              <div className="text-xs leading-relaxed opacity-90">
+                Asegúrate de que tu <span className="font-black">cédula, correo electrónico y WhatsApp</span> estén correctos. Si hay algún error, no podremos comunicarnos contigo para entregarte tus números o notificarte si resultas ganador.
+              </div>
+            </div>
+          </div>
+
           {errorMsg && (
             <div className="mx-10 md:mx-14 mb-4 p-6 bg-red-50 text-red-600 rounded-3xl font-black text-xs flex items-center gap-4 animate-in slide-in-from-top duration-300">
               <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
