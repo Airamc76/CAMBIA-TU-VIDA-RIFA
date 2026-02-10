@@ -12,7 +12,6 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
  * CLIENTE PÚBLICO (PRO): Para compras y consultas anónimas.
- * Configurado para ignorar cualquier sesión persistente.
  * Garantiza que la petición viaje SIEMPRE como rol 'anon'.
  */
 export const supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -22,6 +21,20 @@ export const supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     detectSessionInUrl: false
   }
 });
+
+/**
+ * CLIENTE ADMIN (SERVICE ROLE): Solo para gestión de usuarios.
+ * Requiere VITE_SUPABASE_SERVICE_ROLE_KEY en .env.local
+ */
+const SERVICE_ROLE = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+export const supabaseAdmin = SERVICE_ROLE
+  ? createClient(SUPABASE_URL, SERVICE_ROLE, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+  : null;
 
 export const checkSupabaseConnection = async () => {
   try {

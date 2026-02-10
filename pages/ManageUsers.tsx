@@ -12,6 +12,7 @@ const ManageUsers: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resettingMfaId, setResettingMfaId] = useState<string | null>(null);
   const [confirmMfaReset, setConfirmMfaReset] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
 
   const loadUsers = async () => {
@@ -63,11 +64,9 @@ const ManageUsers: React.FC = () => {
       return;
     }
 
-    console.log("RESET MFA INITIATED FOR UID:", uid);
     setResettingMfaId(uid);
     try {
       const result = await dbService.resetAdminMFA(uid);
-      console.log("RESET MFA SUCCESS:", result);
       setNotification({ type: 'success', msg: "✅ Reset MFA OK: " + (result.message || '2FA desactivado') });
       await loadUsers();
     } catch (err: any) {
@@ -79,8 +78,22 @@ const ManageUsers: React.FC = () => {
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.email?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const handleDeleteUser = async (uid: string) => {
+    setIsSubmitting(true);
+    try {
+      await dbService.deleteAdminUser(uid);
+      setNotification({ type: 'success', msg: 'Usuario eliminado permanentemente' });
+      await loadUsers();
+    } catch (err: any) {
+      setNotification({ type: 'error', msg: err.message || 'No se pudo eliminar el usuario' });
+    } finally {
+      setIsSubmitting(false);
+      setConfirmDelete(null);
+    }
+  };
+
+  const filteredUsers = users.filter(u =>
+    u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.id?.includes(searchTerm)
   );
 
@@ -99,16 +112,16 @@ const ManageUsers: React.FC = () => {
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           <div className="relative flex-1 md:w-80">
-            <input 
-              type="text" 
-              placeholder="Buscar por email o ID..." 
+            <input
+              type="text"
+              placeholder="Buscar por email o ID..."
               className="w-full bg-white border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
           <Button onClick={() => { setFormData({ email: '', password: '', role: 'pagos' }); setShowModal('create'); }} variant="blue" className="px-8 py-4">
-             Nuevo Admin
+            Nuevo Admin
           </Button>
         </div>
       </div>
@@ -128,7 +141,7 @@ const ManageUsers: React.FC = () => {
               {filteredUsers.map(u => {
                 // Resolver UID correctamente
                 const uid = u.user_id || u.id || u.uid;
-                
+
                 return (
                   <tr key={u.id} className="hover:bg-blue-50/30 transition-colors">
                     <td className="px-10 py-8">
@@ -136,47 +149,52 @@ const ManageUsers: React.FC = () => {
                       <div className="text-[9px] text-slate-400 font-mono mt-1 opacity-60 uppercase">{u.id}</div>
                     </td>
                     <td className="px-10 py-8 text-center">
-                      <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest ${
-                        u.role === 'superadmin' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-blue-50 text-blue-600 border border-blue-100'
-                      }`}>
+                      <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest ${u.role === 'superadmin' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-blue-50 text-blue-600 border border-blue-100'
+                        }`}>
                         {u.role === 'superadmin' ? 'ROOT' : 'STAFF'}
                       </span>
                     </td>
                     <td className="px-10 py-8">
                       <div className="text-slate-500 font-bold text-sm">
-                          {u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}
+                        {u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}
                       </div>
                     </td>
                     <td className="px-10 py-8">
                       <div className="flex justify-end gap-3">
-                        <button 
-                          onClick={() => { setSelectedUser(u); setFormData({...formData, role: u.role}); setShowModal('role'); }} 
-                          className="p-3 bg-white border border-slate-100 hover:bg-blue-50 text-blue-600 rounded-2xl transition-all shadow-sm group" 
+                        <button
+                          onClick={() => { setSelectedUser(u); setFormData({ ...formData, role: u.role }); setShowModal('role'); }}
+                          className="p-3 bg-white border border-slate-100 hover:bg-blue-50 text-blue-600 rounded-2xl transition-all shadow-sm group"
                           title="Cambiar Rol"
                         >
-                          <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                          <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                         </button>
-                        <button 
-                          onClick={() => { setSelectedUser(u); setFormData({...formData, password: ''}); setShowModal('password'); }} 
-                          className="p-3 bg-white border border-slate-100 hover:bg-amber-50 text-amber-600 rounded-2xl transition-all shadow-sm group" 
+                        <button
+                          onClick={() => { setSelectedUser(u); setFormData({ ...formData, password: '' }); setShowModal('password'); }}
+                          className="p-3 bg-white border border-slate-100 hover:bg-amber-50 text-amber-600 rounded-2xl transition-all shadow-sm group"
                           title="Reset Clave"
                         >
-                          <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                          <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                         </button>
-                        <button 
+                        <button
                           disabled={resettingMfaId === uid}
                           onClick={() => {
-                            console.log("CONFIRM RESET MFA FOR UID:", uid);
                             setConfirmMfaReset(uid);
-                          }} 
-                          className={`p-3 bg-white border border-slate-100 hover:bg-rose-50 text-rose-600 rounded-2xl transition-all shadow-sm group ${resettingMfaId === uid ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                          }}
+                          className={`p-3 bg-white border border-slate-100 hover:bg-rose-50 text-rose-600 rounded-2xl transition-all shadow-sm group ${resettingMfaId === uid ? 'opacity-50 cursor-not-allowed' : ''}`}
                           title="Reset 2FA"
                         >
                           {resettingMfaId === uid ? (
-                             <div className="w-5 h-5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-5 h-5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
                           ) : (
-                             <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                           )}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(uid)}
+                          className="p-3 bg-white border border-slate-100 hover:bg-red-50 text-red-600 rounded-2xl transition-all shadow-sm group"
+                          title="Eliminar Usuario"
+                        >
+                          <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                       </div>
                     </td>
@@ -187,7 +205,7 @@ const ManageUsers: React.FC = () => {
           </table>
           {isLoading && (
             <div className="py-20 flex justify-center bg-slate-50/50">
-               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
           {!isLoading && filteredUsers.length === 0 && (
@@ -201,7 +219,6 @@ const ManageUsers: React.FC = () => {
         onClose={() => setConfirmMfaReset(null)}
         onConfirm={() => {
           if (confirmMfaReset) {
-            console.log("Confirmación aceptada, llamando handleResetMFA...");
             handleResetMFA(confirmMfaReset);
           }
         }}
@@ -211,11 +228,25 @@ const ManageUsers: React.FC = () => {
         variant="danger"
       />
 
-      <Modal 
-        isOpen={!!showModal} 
-        onClose={() => setShowModal(null)} 
+      <ConfirmDialog
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => {
+          if (confirmDelete) {
+            handleDeleteUser(confirmDelete);
+          }
+        }}
+        title="¿Eliminar Administrador?"
+        message="Esta acción es irreversible. El usuario perderá el acceso de inmediato y su cuenta será borrada de la base de datos."
+        confirmText="Eliminar Permanentemente"
+        variant="danger"
+      />
+
+      <Modal
+        isOpen={!!showModal}
+        onClose={() => setShowModal(null)}
         title={
-            showModal === 'create' ? 'Crear Administrador' : 
+          showModal === 'create' ? 'Crear Administrador' :
             showModal === 'password' ? 'Resetear Contraseña' : 'Cambiar Rol'
         }
       >
@@ -223,12 +254,12 @@ const ManageUsers: React.FC = () => {
           {showModal === 'create' && (
             <>
               <div className="space-y-4">
-                <Input label="Email Oficial" type="email" placeholder="staff@example.com" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
-                <Input label="Contraseña Inicial" type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required />
+                <Input label="Email Oficial" type="email" placeholder="staff@example.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
+                <Input label="Contraseña Inicial" type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Designar Nivel</label>
-                <select className="w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 font-black text-sm" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
+                <select className="w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 font-black text-sm" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })}>
                   <option value="pagos">Staff de Pagos</option>
                   <option value="superadmin">SuperAdministrador (ROOT)</option>
                 </select>
@@ -237,16 +268,16 @@ const ManageUsers: React.FC = () => {
           )}
 
           {showModal === 'password' && (
-            <Input label="Nueva Contraseña Maestra" type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required autoFocus />
+            <Input label="Nueva Contraseña Maestra" type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required autoFocus />
           )}
 
           {showModal === 'role' && (
             <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Actualizar Privilegios</label>
-                <select className="w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 font-black text-sm" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
-                  <option value="pagos">Staff de Pagos</option>
-                  <option value="superadmin">SuperAdministrador (ROOT)</option>
-                </select>
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Actualizar Privilegios</label>
+              <select className="w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 font-black text-sm" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })}>
+                <option value="pagos">Staff de Pagos</option>
+                <option value="superadmin">SuperAdministrador (ROOT)</option>
+              </select>
             </div>
           )}
 

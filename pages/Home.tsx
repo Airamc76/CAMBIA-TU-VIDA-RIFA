@@ -4,20 +4,20 @@ import { Link } from 'react-router-dom';
 import { useRaffles } from '../App';
 import { RaffleStatus, Raffle } from '../types';
 
-const RaffleBookCard: React.FC<{ 
-  raffle: Raffle; 
+const RaffleBookCard: React.FC<{
+  raffle: Raffle;
   position: 'prev' | 'active' | 'next' | 'hidden';
   isPast?: boolean;
 }> = ({ raffle, position, isPast }) => {
   const remainingTickets = Math.max(0, (raffle.total_tickets || 0) - (raffle.sold_tickets || 0));
-  
+
   // Lógica de Agotado
   const isActuallySoldOut = remainingTickets < 4 || isPast;
-  
-  const progress = isActuallySoldOut 
-    ? 0 
-    : raffle.total_tickets > 0 
-      ? Math.round((remainingTickets / raffle.total_tickets) * 1000) / 10 
+
+  const progress = isActuallySoldOut
+    ? 0
+    : raffle.total_tickets > 0
+      ? Math.round((remainingTickets / raffle.total_tickets) * 1000) / 10
       : 0;
 
   // Función para color de la barra footer según porcentaje (Verde -> Rojo)
@@ -41,26 +41,26 @@ const RaffleBookCard: React.FC<{
   return (
     <div className={`absolute top-0 left-1/2 w-[88%] max-w-[360px] md:max-w-[420px] transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] preserve-3d ${positionClasses[position]}`}>
       <div className="bg-white rounded-[2.5rem] overflow-hidden flex flex-col h-[680px] md:h-[780px] select-none shadow-xl relative border border-slate-100">
-        
+
         {/* Parte Superior: Imagen */}
         <div className="relative h-72 md:h-80 bg-slate-50 overflow-hidden">
-          <img 
-            src={raffle.cover_url} 
-            alt={raffle.title} 
+          <img
+            src={raffle.cover_url}
+            alt={raffle.title}
             className={`w-full h-full object-cover transition-transform duration-700 ${isActuallySoldOut ? 'grayscale opacity-50' : 'hover:scale-105'}`}
             draggable="false"
           />
-          
+
           {/* ETIQUETA DE PRECIO XL (Esquina superior derecha en la foto) */}
           {!isActuallySoldOut && (
             <div className="absolute top-6 right-6 z-40 transform hover:scale-105 transition-transform duration-300">
-                <div className="bg-slate-950/90 backdrop-blur-xl px-6 py-4 rounded-[1.8rem] border-2 border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.4)] flex flex-col items-end min-w-[140px]">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] leading-none mb-1.5">COSTO TICKET</span>
-                    <div className="flex items-baseline gap-1.5">
-                        <span className="text-4xl md:text-5xl font-black text-[#FF1E1E] italic tracking-tighter leading-none drop-shadow-[0_0_15px_rgba(255,30,30,0.4)]">{raffle.ticket_price}</span>
-                        <span className="text-lg md:text-xl font-black text-white uppercase italic tracking-tighter">{raffle.currency || 'BS'}</span>
-                    </div>
+              <div className="bg-slate-950/90 backdrop-blur-xl px-6 py-4 rounded-[1.8rem] border-2 border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.4)] flex flex-col items-end min-w-[140px]">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] leading-none mb-1.5">COSTO TICKET</span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-4xl md:text-5xl font-black text-[#FF1E1E] italic tracking-tighter leading-none drop-shadow-[0_0_15px_rgba(255,30,30,0.4)]">{raffle.ticket_price}</span>
+                  <span className="text-lg md:text-xl font-black text-white uppercase italic tracking-tighter">{raffle.currency || 'BS'}</span>
                 </div>
+              </div>
             </div>
           )}
 
@@ -76,26 +76,25 @@ const RaffleBookCard: React.FC<{
           <div className="space-y-4">
             <h3 className="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tighter leading-[0.9]">{raffle.title}</h3>
             <p className="text-[12px] font-bold text-slate-400 uppercase leading-relaxed px-4 line-clamp-2">
-                {raffle.description}
+              {raffle.description}
             </p>
           </div>
-          
+
           <div className="flex flex-col gap-5 mt-6 px-2">
             {/* COMPRAR (ROJO MASIVO) */}
-            <Link 
-              to={!isActuallySoldOut ? `/comprar/${raffle.id}` : '#'} 
-              className={`w-full py-6 rounded-[2rem] font-black text-white uppercase tracking-tight text-2xl transition-all transform active:scale-95 shadow-2xl ${
-                isActuallySoldOut 
-                ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' 
+            <Link
+              to={!isActuallySoldOut ? `/comprar/${raffle.id}` : '#'}
+              className={`w-full py-6 rounded-[2rem] font-black text-white uppercase tracking-tight text-2xl transition-all transform active:scale-95 shadow-2xl ${isActuallySoldOut
+                ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                 : 'bg-[#FF0000] hover:bg-[#D90000] shadow-red-500/40 hover:-translate-y-1'
-              }`}
+                }`}
             >
               {isActuallySoldOut ? 'RIFA CERRADA' : 'COMPRAR TICKETS'}
             </Link>
-            
+
             {/* CONSULTAR (AZUL ELEGANTE) */}
-            <Link 
-              to="/consultar" 
+            <Link
+              to="/consultar"
               className="w-full py-6 rounded-[2rem] font-black text-white bg-[#0066FF] hover:bg-[#0052CC] uppercase tracking-tight text-2xl transition-all transform active:scale-95 shadow-2xl shadow-blue-500/40 hover:-translate-y-1"
             >
               CONSULTAR TICKETS
@@ -105,13 +104,14 @@ const RaffleBookCard: React.FC<{
 
         {/* Footer: Barra Dinámica de Color */}
         <div className={`${footerColor} h-14 relative flex items-center justify-center overflow-hidden transition-colors duration-700`}>
-           <div 
-             className="absolute top-0 left-0 h-full bg-black/10 transition-all duration-1000" 
-             style={{ width: `${100 - progress}%` }} 
-           />
-           <span className="relative z-10 text-slate-950 font-black text-sm uppercase tracking-widest italic">
-             QUEDAN {progress}%
-           </span>
+          {/* La barra de "progreso" (color/relleno) ahora se mueve de derecha a izquierda (se agota) */}
+          <div
+            className="absolute top-0 right-0 h-full bg-black/10 transition-all duration-1000"
+            style={{ width: `${100 - progress}%` }}
+          />
+          <span className="relative z-10 text-slate-950 font-black text-sm uppercase tracking-widest italic">
+            {isActuallySoldOut ? 'RIFA AGOTADA' : `QUEDAN ${progress}%`}
+          </span>
         </div>
       </div>
     </div>
@@ -135,7 +135,7 @@ const Home: React.FC = () => {
       setActiveIndex(prev => prev + 1);
     }
   };
-  
+
   const handlePrev = () => {
     if (activeIndex > 0) {
       setActiveIndex(prev => prev - 1);
@@ -162,36 +162,56 @@ const Home: React.FC = () => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-white flex flex-col items-center justify-center py-4 px-4 relative overflow-hidden select-none">
-      
-      <div className="w-full max-w-4xl flex justify-between items-center mb-12 z-50 px-2">
-        <button 
-          onClick={handlePrev} 
+    <div className="min-h-[calc(100vh-80px)] bg-white flex flex-col items-center justify-start py-8 px-4 relative overflow-hidden select-none">
+
+      {/* 🌫️ BACKGROUND BLUR LOGO */}
+      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none flex items-center justify-center overflow-hidden">
+        <img
+          src="/logo_full.jpg"
+          alt="Background Logo"
+          className="w-[150%] max-w-none scale-150 blur-3xl transform rotate-12"
+        />
+      </div>
+
+      {/* 🌟 HERO BRANDING */}
+      <div className="flex flex-col items-center gap-6 mb-16 animate-in fade-in zoom-in duration-1000 z-10">
+        <div className="w-32 h-32 md:w-40 md:h-40 rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white ring-1 ring-slate-100 bg-white">
+          <img src="/logo_full.jpg" alt="Logo Hero" className="w-full h-full object-cover" />
+        </div>
+        <div className="text-center space-y-1">
+          <h2 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tighter uppercase italic">Sorteos Exclusivos</h2>
+          <p className="text-blue-600 font-black uppercase tracking-[0.4em] text-[10px]">CambiatuvidaConDavid</p>
+        </div>
+      </div>
+
+      <div className="w-full max-w-4xl flex justify-between items-center mb-8 z-10 px-2">
+        <button
+          onClick={handlePrev}
           disabled={activeIndex === 0}
           className={`p-4 rounded-full transition-all active:scale-90 ${activeIndex === 0 ? 'opacity-0 pointer-events-none' : 'bg-slate-50 hover:bg-slate-100 text-slate-400'}`}
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M15 19l-7-7 7-7"/></svg>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M15 19l-7-7 7-7" /></svg>
         </button>
-        
+
         <div className="flex flex-col items-center">
-            <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.6em] animate-pulse">
-                {activeIndex === allRaffles.length - 1 ? 'FIN DEL HISTORIAL' : 'DESLIZA EL LIBRO'}
-            </span>
-            <div className="h-1 w-16 bg-slate-100 rounded-full mt-2 overflow-hidden">
-               <div className="h-full bg-slate-300 transition-all duration-500" style={{ width: `${((activeIndex + 1) / allRaffles.length) * 100}%` }} />
-            </div>
+          <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.6em] animate-pulse">
+            {activeIndex === allRaffles.length - 1 ? 'FIN DEL HISTORIAL' : 'DESLIZA EL LIBRO'}
+          </span>
+          <div className="h-1 w-16 bg-slate-100 rounded-full mt-2 overflow-hidden">
+            <div className="h-full bg-slate-300 transition-all duration-500" style={{ width: `${((activeIndex + 1) / allRaffles.length) * 100}%` }} />
+          </div>
         </div>
 
-        <button 
-          onClick={handleNext} 
+        <button
+          onClick={handleNext}
           disabled={activeIndex === allRaffles.length - 1}
           className={`p-4 rounded-full transition-all active:scale-90 ${activeIndex === allRaffles.length - 1 ? 'opacity-0 pointer-events-none' : 'bg-slate-50 hover:bg-slate-100 text-slate-400'}`}
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7"/></svg>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7" /></svg>
         </button>
       </div>
 
-      <div 
+      <div
         className={`relative w-full max-w-4xl h-[680px] md:h-[780px] perspective-2000 cursor-grab ${isDragging ? 'cursor-grabbing' : ''}`}
         onMouseDown={(e) => onStart(e.clientX)}
         onMouseMove={(e) => onMove(e.clientX)}
@@ -209,12 +229,12 @@ const Home: React.FC = () => {
           else if (index < activeIndex) pos = 'prev';
 
           return (
-            <RaffleBookCard 
-              key={raffle.id} 
-              raffle={raffle} 
-              position={pos} 
+            <RaffleBookCard
+              key={raffle.id}
+              raffle={raffle}
+              position={pos}
               // Fixed: Cannot find name 'r'. Replaced 'r' with 'raffle'.
-              isPast={raffle.status !== RaffleStatus.ACTIVA || (raffle.total_tickets - (raffle.sold_tickets || 0)) < 4} 
+              isPast={raffle.status !== RaffleStatus.ACTIVA || (raffle.total_tickets - (raffle.sold_tickets || 0)) < 4}
             />
           );
         })}

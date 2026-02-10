@@ -46,7 +46,6 @@ export const useRaffles = () => {
 };
 
 const Home = lazy(() => import('./pages/Home'));
-const RaffleDetail = lazy(() => import('./pages/RaffleDetail'));
 const PurchasePage = lazy(() => import('./pages/Purchase'));
 const Consult = lazy(() => import('./pages/Consult'));
 const AdminTiforbi = lazy(() => import('./pages/AdminTiforbi'));
@@ -72,7 +71,7 @@ const App: React.FC = () => {
     try {
       const dbRaffles = await dbService.getRaffles();
       setRaffles(dbRaffles || []);
-      
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const { data: admin } = await supabase
@@ -80,12 +79,12 @@ const App: React.FC = () => {
           .select('role')
           .eq('user_id', session.user.id)
           .single();
-        
+
         if (admin) {
           setUserRole(admin.role as AdminRole);
           if (['pagos', 'superadmin'].includes(admin.role)) {
-             const dbRequests = await dbService.getPendingPurchaseRequests();
-             setPurchases(dbRequests as PurchaseData[] || []);
+            const dbRequests = await dbService.getPendingPurchaseRequests();
+            setPurchases(dbRequests as PurchaseData[] || []);
           }
         }
       }
@@ -122,15 +121,15 @@ const App: React.FC = () => {
   };
 
   return (
-    <RaffleContext.Provider value={{ 
-      raffles, 
-      purchases, 
+    <RaffleContext.Provider value={{
+      raffles,
+      purchases,
       userRole,
       isLoading,
       dbError,
-      addRaffle, 
-      deleteRaffle, 
-      updateRaffle, 
+      addRaffle,
+      deleteRaffle,
+      updateRaffle,
       updatePurchaseStatus,
       refreshData,
       setUserRole
@@ -142,7 +141,6 @@ const App: React.FC = () => {
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/rifa/:id" element={<RaffleDetail />} />
                 <Route path="/comprar/:id" element={<PurchasePage />} />
                 <Route path="/consultar" element={<Consult />} />
                 <Route path="/admintiforbi" element={<AdminTiforbi />} />

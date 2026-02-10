@@ -21,8 +21,8 @@ export const Header: React.FC = () => {
       <header className="sticky top-0 z-40 w-full border-b border-blue-50 bg-white/90 backdrop-blur-xl">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group" onClick={closeMobileMenu}>
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              <span className="font-black text-white text-xl">C</span>
+            <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shadow-blue-200 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+              <img src="/logo_full.jpg" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <span className="font-black text-2xl tracking-tighter text-slate-900">
               Cambiatuvida<span className="text-blue-600">ConDavid</span>
@@ -35,9 +35,8 @@ export const Header: React.FC = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-[10px] font-black uppercase tracking-widest transition-all hover:text-blue-600 ${
-                  location.pathname === link.path ? 'text-blue-600' : 'text-slate-400'
-                }`}
+                className={`text-[10px] font-black uppercase tracking-widest transition-all hover:text-blue-600 ${location.pathname === link.path ? 'text-blue-600' : 'text-slate-400'
+                  }`}
               >
                 {link.name}
               </Link>
@@ -52,15 +51,15 @@ export const Header: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-3 text-blue-600 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors"
               aria-label="Menu"
             >
               {isMobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 6h16M4 12h16M4 18h16" /></svg>
               )}
             </button>
           </div>
@@ -74,14 +73,13 @@ export const Header: React.FC = () => {
                 key={link.path}
                 to={link.path}
                 onClick={closeMobileMenu}
-                className={`text-xl font-black p-6 rounded-[2rem] transition-all flex items-center justify-between group ${
-                  location.pathname === link.path 
-                    ? 'bg-blue-600 text-white shadow-xl shadow-blue-200' 
-                    : 'text-slate-800 active:bg-blue-50 border border-blue-50'
-                }`}
+                className={`text-xl font-black p-6 rounded-[2rem] transition-all flex items-center justify-between group ${location.pathname === link.path
+                  ? 'bg-blue-600 text-white shadow-xl shadow-blue-200'
+                  : 'text-slate-800 active:bg-blue-50 border border-blue-50'
+                  }`}
               >
                 {link.name}
-                <svg className="w-6 h-6 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
+                <svg className="w-6 h-6 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg>
               </Link>
             ))}
             <button
@@ -97,31 +95,32 @@ export const Header: React.FC = () => {
         )}
       </header>
 
-      <Modal 
-        isOpen={isTermsOpen} 
-        onClose={() => setIsTermsOpen(false)} 
+      <Modal
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
         title="Términos y Condiciones"
       >
         <div className="space-y-6 pb-4">
           <p className="text-slate-500 font-bold mb-6 italic">Por favor, lee y acepta nuestros términos para participar.</p>
-          
+
           <ol className="space-y-6">
-            <li className="flex gap-4">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-black">1</span>
-              <p className="text-sm font-medium">Los números disponibles para la compra en cada sorteo se especificarán en la página de detalles correspondientes a cada sorteo.</p>
-            </li>
-            <li className="flex gap-4">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-black">2</span>
-              <p className="text-sm font-medium">Debes verificar tu compra antes de confirmarla haciendo clic en "Comprar". No realizamos reembolsos por errores cometidos por el usuario.</p>
-            </li>
-            <li className="flex gap-4">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-black">3</span>
-              <p className="text-sm font-medium">Los tickets se enviarán en un plazo máximo de 24 horas, debido al alto volumen de pagos por procesar.</p>
-            </li>
-            <li className="flex gap-4">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-black">4</span>
-              <p className="text-sm font-medium">Solo pueden participar personas naturales mayores de 18 años con nacionalidad venezolana o extranjeros.</p>
-            </li>
+            {[
+              "Los números disponibles para la compra en cada sorteo se especificarán en la página de detalles correspondientes a cada sorteo.",
+              "Debes verificar tu compra antes de confirmarla haciendo clic en \"Comprar\". No realizamos reembolsos por errores cometidos por el usuario.",
+              "Los tickets se enviarán en un plazo máximo de 24 horas, debido al alto volumen de pagos por procesar.",
+              "Solo pueden participar personas naturales mayores de 18 años con nacionalidad venezolana o extranjeros. Los ganadores en el extranjero deberán designar a una persona de confianza en Venezuela para recibir el premio.",
+              "Los premios deben retirarse en persona en la ubicación designada para cada sorteo. Realizamos entregas personales únicamente en la dirección indicada por el ganador del primer premio o premio mayor.",
+              "La compra mínima requerida para participar es de tres (03) tickets. Estos se asignarán de manera aleatoria y se enviarán al correo electrónico proporcionados.",
+              "Tienes un plazo de 72 horas para reclamar tu premio.",
+              "Los ganadores aceptan aparecer en el contenido audiovisual del sorteo, mostrando su presencia en redes sociales y durante la entrega de premios. Esto es OBLIGATORIO."
+            ].map((text, idx) => (
+              <li key={idx} className="flex gap-4">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-black">
+                  {idx + 1}
+                </span>
+                <p className="text-sm font-medium leading-relaxed">{text}</p>
+              </li>
+            ))}
           </ol>
         </div>
       </Modal>
@@ -136,8 +135,8 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-12">
           <div className="flex flex-col items-center md:items-start gap-5">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                <span className="font-black text-white text-sm">C</span>
+              <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
+                <img src="/logo_full.jpg" alt="Logo" className="w-full h-full object-cover" />
               </div>
               <span className="font-black text-xl tracking-tighter text-slate-900">Cambiatuvida<span className="text-blue-600">ConDavid</span></span>
             </Link>
@@ -145,12 +144,12 @@ export const Footer: React.FC = () => {
               La plataforma definitiva para sorteos seguros, transparentes y emocionantes.
             </p>
           </div>
-          
+
           <div className="flex flex-col md:flex-row justify-center gap-6 md:gap-10 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 text-center">
-             <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
-             <Link to="/consultar" className="hover:text-blue-600 transition-colors">Tickets</Link>
-             <Link to="/adminpagos" className="hover:text-blue-600 transition-colors">Staff Pagos</Link>
-             <Link to="/admintiforbi" className="hover:text-blue-600 transition-colors">Admin Root</Link>
+            <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
+            <Link to="/consultar" className="hover:text-blue-600 transition-colors">Tickets</Link>
+            <Link to="/adminpagos" className="hover:text-blue-600 transition-colors">Staff Pagos</Link>
+            <Link to="/admintiforbi" className="hover:text-blue-600 transition-colors">Admin Root</Link>
           </div>
 
           <div className="flex flex-col items-center md:items-end gap-3">

@@ -1,5 +1,5 @@
 
-import { supabase, supabasePublic, SUPABASE_ANON_KEY, SUPABASE_URL } from '../lib/supabase';
+import { supabase, supabasePublic, supabaseAdmin, SUPABASE_ANON_KEY, SUPABASE_URL } from '../lib/supabase';
 import { Raffle, AdminRole } from '../types';
 
 /**
@@ -8,11 +8,11 @@ import { Raffle, AdminRole } from '../types';
  */
 const handleDBError = (error: any, context: string) => {
   console.error(`❌ ERROR EN ${context.toUpperCase()}:`, error);
-  
+
   const msg = error?.message || 'Error desconocido';
   const details = error?.details ? `\nDetalles: ${error.details}` : '';
   const hint = error?.hint ? `\nSugerencia: ${error.hint}` : '';
-  
+
   const err = new Error(msg);
   (err as any).details = details;
   (err as any).hint = hint;
@@ -65,50 +65,38 @@ export const dbService = {
    * ✅ Snippet fetch definitivo.
    */
   async createPublicPurchase(data: any) {
-    const url = `${SUPABASE_URL}/functions/v1/public-create-request`;
-    
+    // 1. Validar datos mínimos
+    if (!data.buyerName || !data.buyerDni || !data.amount) {
+      throw new Error("Faltan datos obligatorios para la compra.");
+    }
+
     const payload = {
-      raffle_id: data.raffleId,
-      full_name: data.buyerName,
-      national_id: normalizeDni(data.buyerDni),
-      email: normalizeEmail(data.buyerEmail),
-      whatsapp: normalizeDni(data.buyerPhone),
-      ticket_qty: Number(data.ticketCount),
-      amount: Number(data.amount),
-      payment_method: data.paymentMethod,
-      reference: String(data.paymentRef || '').trim(),
-      receipt_path: data.receiptPath,
-      status: "pending"
+      p_raffle_id: data.raffleId,
+      p_full_name: data.buyerName,
+      p_national_id: normalizeDni(data.buyerDni),
+      p_email: normalizeEmail(data.buyerEmail),
+      p_whatsapp: normalizeDni(data.buyerPhone),
+      p_ticket_qty: Number(data.ticketCount),
+      p_amount: Number(data.amount),
+      p_payment_method: data.paymentMethod,
+      p_reference: String(data.paymentRef || '').trim(),
+      p_receipt_path: data.receiptPath || null
     };
 
-    // PRUEBA DEFINITIVA (Log solicitado)
-    console.log("USING SUPABASE URL:", SUPABASE_URL);
-    console.log("Payload:", payload);
 
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify(payload),
-      });
+      // Usamos RPC (Remote Procedure Call) para saltar la restricción de SELECT RLS
+      const { data: request_id, error } = await supabasePublic
+        .rpc('create_purchase_request', payload);
 
-      const text = await res.text();
-      let result;
-      try { result = JSON.parse(text); } catch { result = { raw: text }; }
-
-      if (!res.ok) {
-        console.error("❌ public-create-request failed:", res.status, result);
-        const errorMsg = result?.error || result?.message || result?.raw || "Error desconocido en función";
-        throw new Error(errorMsg);
+      if (error) {
+        console.error("❌ RPC Failed:", error);
+        throw error;
       }
 
-      console.log("✅ Purchase request creada (via function):", result);
-      return result.request_id || result.id;
+      return request_id;
     } catch (err: any) {
-      console.error("❌ ERROR REAL INSERT/FUNCTION:", err);
+      console.error("❌ ERROR REAL RPC:", err);
       throw err;
     }
   },
@@ -131,14 +119,15 @@ export const dbService = {
       whatsapp: row.whatsapp || '',
       email: row.email || '',
       raffle: row.raffle_title || 'Sorteo',
+      raffleTotalTickets: row.raffle_total_tickets || 0,
       amount: row.amount?.toString() || '0',
       ref: row.reference || 'S/R',
       date: new Date(row.created_at).toLocaleDateString(),
       ticketsCount: row.ticket_qty || 0,
       status:
         row.status === 'approved' ? 'aprobado' :
-        row.status === 'rejected' ? 'rechazado' :
-        'pendiente',
+          row.status === 'rejected' ? 'rechazado' :
+            'pendiente',
       evidence_url: row.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${row.receipt_path}` : null,
       assignedNumbers: row.assigned_numbers || []
     }));
@@ -151,47 +140,40 @@ export const dbService = {
       .select('*, raffles:raffle_id(title)')
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
-    
+
     if (error) handleDBError(error, 'listar solicitudes');
-    
+
     return (data || []).map(p => ({
-        id: p.id,
-        user: p.full_name,
-        dni: p.national_id,
-        whatsapp: p.whatsapp,
-        email: p.email,
-        raffle: (p.raffles as any)?.title,
-        raffleId: p.raffle_id,
-        amount: p.amount?.toString(),
-        ref: p.reference,
-        date: new Date(p.created_at).toLocaleDateString(),
-        ticketsCount: p.ticket_qty,
-        status: 'pendiente',
-        evidence_url: p.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${p.receipt_path}` : null
+      id: p.id,
+      user: p.full_name,
+      dni: p.national_id,
+      whatsapp: p.whatsapp,
+      email: p.email,
+      raffle: (p.raffles as any)?.title,
+      raffleId: p.raffle_id,
+      amount: p.amount?.toString(),
+      ref: p.reference,
+      date: new Date(p.created_at).toLocaleDateString(),
+      ticketsCount: p.ticket_qty,
+      status: 'pendiente',
+      evidence_url: p.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${p.receipt_path}` : null
     }));
   },
 
   async updatePurchaseStatus(id: string, status: 'approved' | 'rejected') {
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-    if (!token) throw new Error("No hay sesión activa.");
+    const rpcName = status === 'approved' ? 'approve_purchase' : 'reject_purchase';
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-approve-request`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify({ request_id: id, status: status }),
-    });
+    // Llamar a RPC correspondiente para manejar la transacción de tickets
+    const { error } = await supabase.rpc(rpcName, { p_request_id: id });
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Error al procesar la solicitud.");
+    if (error) {
+      console.error(`Error en ${rpcName}:`, error);
+      throw error;
     }
     return true;
   },
+
+  // --- 5. GESTIÓN DE USUARIOS (SUPERADMIN) ---
 
   async getAdminUsers() {
     const { data, error } = await supabase.rpc('get_admin_users');
@@ -200,52 +182,66 @@ export const dbService = {
   },
 
   async createAdminUser(data: any) {
-    const { data: { session } } = await supabase.auth.getSession();
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/superadmin-users-create`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Authorization': `Bearer ${session?.access_token}`,
-        'apikey': SUPABASE_ANON_KEY 
-      },
-      body: JSON.stringify(data)
+    if (!supabaseAdmin) {
+      throw new Error("Configuración incompleta: Se requiere SERVICE_ROLE_KEY para crear usuarios.");
+    }
+
+    // 1. Crear en Auth
+    const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true
     });
-    if (!response.ok) throw new Error('Error al crear usuario');
-    return response.json();
+    if (authErr) throw authErr;
+
+    // 2. Crear en tabla admins (Usamos supabaseAdmin para saltar RLS)
+    const { error: dbErr } = await supabaseAdmin.from('admins').insert({
+      user_id: authUser.user.id,
+      role: data.role
+    });
+    if (dbErr) throw dbErr;
+
+    return authUser.user;
   },
 
   async updateAdminUser(data: any) {
-    const { data: { session } } = await supabase.auth.getSession();
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/superadmin-users-update`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Authorization': `Bearer ${session?.access_token}`,
-        'apikey': SUPABASE_ANON_KEY 
-      },
-      body: JSON.stringify(data)
-    });
-    if (!response.ok) throw new Error('Error al actualizar usuario');
-    return response.json();
+    // Si es cambio de ROL (pasa por nuestra tabla admins)
+    if (data.role) {
+      const { error } = await supabase.rpc('update_admin_role', {
+        p_user_id: data.user_id,
+        p_role: data.role
+      });
+      if (error) throw error;
+    }
+
+    // Si es cambio de PASSWORD (requiere supabaseAdmin)
+    if (data.password) {
+      if (!supabaseAdmin) throw new Error("Se requiere SERVICE_ROLE_KEY para resetear contraseñas.");
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
+        password: data.password
+      });
+      if (error) throw error;
+    }
+
+    return true;
   },
 
   async resetAdminMFA(userId: string) {
-    const { data: { session } } = await supabase.auth.getSession();
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/superadmin-users-reset-mfa`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Authorization': `Bearer ${session?.access_token}`,
-        'apikey': SUPABASE_ANON_KEY 
-      },
-      body: JSON.stringify({ user_id: userId })
-    });
-    if (!response.ok) throw new Error('Error al resetear MFA');
-    return response.json();
+    // Usamos el RPC que borra de auth.mfa_factors
+    const { error } = await supabase.rpc('reset_admin_mfa', { p_user_id: userId });
+    if (error) throw error;
+
+    return { message: "Seguridad 2FA reseteada. El usuario deberá configurar uno nuevo." };
+  },
+
+  async getMyRole() {
+    const { data, error } = await supabase.rpc('get_my_role');
+    if (error) throw error;
+    return data as AdminRole;
   },
 
   async saveRaffle(raffle: Raffle) {
-    const { data, error } = await supabase.from('raffles').upsert(raffle).select().single();
+    const { data, error } = await supabase.rpc('save_raffle', { p_raffle: raffle });
     if (error) throw error;
     return data;
   },
@@ -260,5 +256,29 @@ export const dbService = {
     if (error) throw error;
     const { data } = supabase.storage.from('comprobantes').getPublicUrl(path);
     return data.publicUrl;
+  },
+
+  async deleteAdminUser(userId: string) {
+    if (!supabaseAdmin) throw new Error("Se requiere SERVICE_ROLE_KEY para eliminar usuarios.");
+
+    // 1. Eliminar de tabla admins primero (por FK)
+    const { error: dbErr } = await supabaseAdmin.from('admins').delete().eq('user_id', userId);
+    if (dbErr) throw dbErr;
+
+    // 2. Eliminar de Auth
+    const { error: authErr } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (authErr) throw authErr;
+
+    return true;
+  },
+
+  async searchTicketWinner(raffleId: string, ticketNumber: number) {
+    const { data, error } = await supabase.rpc('search_ticket_winner', {
+      p_raffle_id: raffleId,
+      p_number: ticketNumber
+    });
+
+    if (error) throw error;
+    return data && data.length > 0 ? data[0] : null;
   }
 };

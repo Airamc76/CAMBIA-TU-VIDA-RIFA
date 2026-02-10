@@ -6,12 +6,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-export const Button: React.FC<ButtonProps> = ({ 
-  children, 
-  variant = 'primary', 
-  fullWidth = false, 
-  className = '', 
-  ...props 
+export const Button: React.FC<ButtonProps> = ({
+  children,
+  variant = 'primary',
+  fullWidth = false,
+  className = '',
+  ...props
 }) => {
   const baseStyles = 'px-6 py-2.5 rounded-xl font-bold transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2';
   const variants = {
@@ -22,9 +22,9 @@ export const Button: React.FC<ButtonProps> = ({
     ghost: 'bg-transparent hover:bg-blue-50 text-blue-600',
     success: 'bg-[#4ADE80] hover:bg-green-500 text-white shadow-lg shadow-green-600/20'
   };
-  
+
   return (
-    <button 
+    <button
       className={`${baseStyles} ${variants[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
       {...props}
     >
@@ -42,7 +42,7 @@ export const Input: React.FC<InputProps> = ({ label, error, className = '', ...p
   return (
     <div className="flex flex-col gap-1.5 w-full">
       {label && <label className="text-sm font-black text-slate-700 tracking-tight">{label}</label>}
-      <input 
+      <input
         className={`bg-white border ${error ? 'border-red-500' : 'border-blue-100'} rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 transition-all placeholder:text-slate-300 ${className}`}
         {...props}
       />
@@ -85,7 +85,7 @@ export const ProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
         <span className={`${styles.text} transition-colors duration-500`}>{progress}%</span>
       </div>
       <div className="h-4 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/50 shadow-inner">
-        <div 
+        <div
           className={`h-full ${styles.bar} rounded-full transition-all duration-1000 ease-out`}
           style={{ width: `${progress}%` }}
         />
@@ -94,21 +94,21 @@ export const ProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
   );
 };
 
-export const Modal: React.FC<{ 
-  isOpen: boolean; 
-  onClose: () => void; 
-  title: string; 
-  children: React.ReactNode 
+export const Modal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode
 }> = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-blue-900/10 backdrop-blur-md animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-blue-900/10 backdrop-blur-md animate-in fade-in duration-300">
       <div className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-blue-100 animate-in zoom-in-95 duration-300">
         <div className="flex items-center justify-between p-8 border-b border-blue-50">
           <h2 className="text-2xl font-black text-blue-900 tracking-tight">{title}</h2>
           <button onClick={onClose} className="p-2 hover:bg-blue-50 rounded-full transition-colors text-blue-400">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
         <div className="p-8 overflow-y-auto flex-1 text-slate-600 leading-relaxed font-medium">
