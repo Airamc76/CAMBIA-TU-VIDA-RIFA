@@ -43,7 +43,7 @@ const RaffleBookCard: React.FC<{
       <div className="bg-white rounded-[2.5rem] overflow-hidden flex flex-col h-[680px] md:h-[780px] select-none shadow-xl relative border border-slate-100">
 
         {/* Parte Superior: Imagen */}
-        <div className="relative h-72 md:h-80 bg-slate-50 overflow-hidden">
+        <div className="relative h-96 md:h-[420px] bg-slate-50 overflow-hidden">
           <img
             src={raffle.cover_url}
             alt={raffle.title}
