@@ -192,10 +192,10 @@ export const Footer: React.FC = () => {
                 <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Avalado por:</div>
                 <div className="flex items-center gap-6">
                   <div className="bg-white p-2 rounded-xl shadow-md border border-slate-100">
-                    <img src="/loteria_tachira.png" alt="Lotería del Táchira" className="h-16 w-auto object-contain" />
+                    <img src="/loteria_tachira.jpg" alt="Lotería del Táchira" className="h-16 w-auto object-contain" />
                   </div>
                   <div className="bg-white p-2 rounded-xl shadow-md border border-slate-100">
-                    <img src="/super_gana.png" alt="Super Gana" className="h-16 w-auto object-contain" />
+                    <img src="/supergana.jpg" alt="Super Gana" className="h-16 w-auto object-contain" />
                   </div>
                 </div>
               </div>
