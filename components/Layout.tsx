@@ -10,8 +10,6 @@ export const Header: React.FC = () => {
   const navLinks = [
     { name: 'Inicio', path: '/' },
     { name: 'Consultar', path: '/consultar' },
-    { name: 'Pagos', path: '/adminpagos' },
-    { name: 'Admin', path: '/admintiforbi' },
   ];
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -148,8 +146,6 @@ export const Footer: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-center gap-6 md:gap-10 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 text-center">
             <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
             <Link to="/consultar" className="hover:text-blue-600 transition-colors">Tickets</Link>
-            <Link to="/adminpagos" className="hover:text-blue-600 transition-colors">Staff Pagos</Link>
-            <Link to="/admintiforbi" className="hover:text-blue-600 transition-colors">Admin Root</Link>
           </div>
 
           <div className="flex flex-col items-center md:items-end gap-3">

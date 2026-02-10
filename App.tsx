@@ -144,7 +144,7 @@ const App: React.FC = () => {
                 <Route path="/comprar/:id" element={<PurchasePage />} />
                 <Route path="/consultar" element={<Consult />} />
                 <Route path="/admintiforbi" element={<AdminTiforbi />} />
-                <Route path="/adminpagos" element={<AdminPagos />} />
+                <Route path="/pagos" element={<AdminPagos />} />
               </Routes>
             </Suspense>
           </main>
