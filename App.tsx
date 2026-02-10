@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, createContext, useContext, useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header, Footer } from './components/Layout';
 import { Raffle, AdminRole } from './types';
 import { dbService } from './services/dbService';
