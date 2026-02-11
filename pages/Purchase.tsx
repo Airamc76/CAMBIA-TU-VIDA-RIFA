@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRaffles } from '../App';
-import { Input, Button } from '../components/UI';
+import { Input, Button, Modal } from '../components/UI';
 import { dbService } from '../services/dbService';
 
 const Purchase: React.FC = () => {
@@ -23,6 +23,7 @@ const Purchase: React.FC = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -34,7 +35,7 @@ const Purchase: React.FC = () => {
   const isOverStock = form.count > remaining;
   const isInvalidAmount = isOverStock || isLeavingOrphans || form.count < 3;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
@@ -44,6 +45,11 @@ const Purchase: React.FC = () => {
       return;
     }
 
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleFinalSubmit = async () => {
+    setIsConfirmModalOpen(false);
     setIsSubmitting(true);
     try {
       // 1. Subir evidencia
@@ -128,34 +134,32 @@ const Purchase: React.FC = () => {
             </div>
           </div>
 
-          {/* Datos de Pago Móvil */}
+          {/* Selector de Tickets */}
           <div className="bg-white p-8 rounded-[3.5rem] border border-blue-100 shadow-xl space-y-6 animate-in slide-in-from-left duration-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+            <label className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] block text-center">¿Cuántos tickets compraste?</label>
+            <div className="flex items-center justify-center gap-5">
+              <button type="button" onClick={() => setForm({ ...form, count: Math.max(3, form.count - 1) })} className="w-12 h-12 rounded-xl bg-slate-50 border border-blue-100 text-blue-600 font-black text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">-</button>
+              <div className="flex flex-col items-center">
+                <input
+                  type="number"
+                  min="4"
+                  value={form.count}
+                  onChange={e => setForm({ ...form, count: parseInt(e.target.value) || 0 })}
+                  className={`w-28 text-center text-4xl font-black bg-transparent outline-none ${isInvalidAmount ? 'text-red-500' : 'text-slate-900'}`}
+                />
+                <div className="text-[10px] font-black text-blue-600 mt-1 uppercase tracking-widest">Tickets</div>
               </div>
-              <h3 className="font-black text-slate-900 uppercase tracking-[0.2em] text-[10px]">Datos de Pago Móvil</h3>
+              <button type="button" onClick={() => setForm({ ...form, count: form.count + 1 })} className="w-12 h-12 rounded-xl bg-slate-50 border border-blue-100 text-blue-600 font-black text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">+</button>
             </div>
 
-            <div className="space-y-4">
-              <div className="group cursor-pointer">
-                <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Cédula de Identidad</span>
-                <div className="flex items-center justify-between">
-                  <span className="font-black text-slate-900 text-lg">26.172.877</span>
-                  <button onClick={() => navigator.clipboard.writeText('26172877')} className="opacity-40 group-hover:opacity-100 transition-all text-blue-600"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg></button>
-                </div>
-              </div>
-              <div className="group cursor-pointer">
-                <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Teléfono / Pago Móvil</span>
-                <div className="flex items-center justify-between">
-                  <span className="font-black text-slate-900 text-lg">0424 232 0467</span>
-                  <button onClick={() => navigator.clipboard.writeText('04242320467')} className="opacity-40 group-hover:opacity-100 transition-all text-blue-600"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg></button>
-                </div>
-              </div>
-              <div className="group cursor-pointer border-t border-slate-50 pt-3">
-                <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Banco</span>
-                <span className="font-black text-slate-900 text-[10px] block uppercase tracking-tight">0169 R4 BANCO MICRO FINANCIERO</span>
-              </div>
+            <div className="text-[9px] font-black uppercase tracking-widest text-center">
+              {isLeavingOrphans ? (
+                <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Compra {remaining} o deja al menos 3.</span>
+              ) : isOverStock ? (
+                <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Máximo {remaining} disponibles.</span>
+              ) : (
+                <span className="text-slate-400">Total a Pagar: <span className="text-blue-600 text-lg font-black ml-1">{(raffle.ticket_price * form.count).toLocaleString()} {raffle.currency || 'Bs'}</span></span>
+              )}
             </div>
           </div>
         </div>
@@ -167,18 +171,7 @@ const Purchase: React.FC = () => {
             <p className="text-slate-400 font-bold text-sm">Completa tus datos para confirmar tu participación.</p>
           </div>
 
-          {/* Warning: Verify Contact Information */}
-          <div className="mb-6 p-6 bg-amber-50 border-2 border-amber-200 text-amber-900 rounded-3xl font-bold text-sm flex items-start gap-4 animate-in slide-in-from-top duration-300">
-            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-            </div>
-            <div className="flex-1">
-              <div className="font-black uppercase tracking-wide text-xs mb-1">⚠️ Verifica tus datos antes de enviar</div>
-              <div className="text-xs leading-relaxed opacity-90">
-                Asegúrate de que tu <span className="font-black">cédula, correo electrónico y WhatsApp</span> estén correctos. Si hay algún error, no podremos comunicarnos contigo para entregarte tus números o notificarte si resultas ganador.
-              </div>
-            </div>
-          </div>
+          {/* Warning Removed */}
 
           {errorMsg && (
             <div className="mx-10 md:mx-14 mb-4 p-6 bg-red-50 text-red-600 rounded-3xl font-black text-xs flex items-center gap-4 animate-in slide-in-from-top duration-300">
@@ -200,31 +193,34 @@ const Purchase: React.FC = () => {
               <Input label="WhatsApp / Celular" required placeholder="04121234567" value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} />
             </div>
 
+            {/* Datos de Pago Móvil */}
             <div className="space-y-4 bg-blue-50/50 p-8 rounded-[2.5rem] border border-blue-100/50">
-              <label className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] block text-center">¿Cuántos tickets compraste?</label>
-              <div className="flex items-center justify-center gap-5">
-                <button type="button" onClick={() => setForm({ ...form, count: Math.max(3, form.count - 1) })} className="w-12 h-12 rounded-xl bg-white border border-blue-100 text-blue-600 font-black text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">-</button>
-                <div className="flex flex-col items-center">
-                  <input
-                    type="number"
-                    min="4"
-                    value={form.count}
-                    onChange={e => setForm({ ...form, count: parseInt(e.target.value) || 0 })}
-                    className={`w-28 text-center text-4xl font-black bg-transparent outline-none ${isInvalidAmount ? 'text-red-500' : 'text-slate-900'}`}
-                  />
-                  <div className="text-[10px] font-black text-blue-600 mt-1 uppercase tracking-widest">Tickets</div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 </div>
-                <button type="button" onClick={() => setForm({ ...form, count: form.count + 1 })} className="w-12 h-12 rounded-xl bg-white border border-blue-100 text-blue-600 font-black text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">+</button>
+                <h3 className="font-black text-slate-900 uppercase tracking-[0.2em] text-[10px]">Datos de Pago Móvil</h3>
               </div>
 
-              <div className="text-[9px] font-black uppercase tracking-widest text-center">
-                {isLeavingOrphans ? (
-                  <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Compra {remaining} o deja al menos 3.</span>
-                ) : isOverStock ? (
-                  <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Máximo {remaining} disponibles.</span>
-                ) : (
-                  <span className="text-slate-400">Total a Pagar: <span className="text-blue-600 text-lg font-black ml-1">{(raffle.ticket_price * form.count).toLocaleString()} {raffle.currency || 'Bs'}</span></span>
-                )}
+              <div className="space-y-4">
+                <div className="group cursor-pointer">
+                  <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Cédula de Identidad</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-slate-900 text-lg">26.172.877</span>
+                    <button type="button" onClick={() => navigator.clipboard.writeText('26172877')} className="opacity-40 group-hover:opacity-100 transition-all text-blue-600"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg></button>
+                  </div>
+                </div>
+                <div className="group cursor-pointer">
+                  <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Teléfono / Pago Móvil</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-slate-900 text-lg">0424 232 0467</span>
+                    <button type="button" onClick={() => navigator.clipboard.writeText('04242320467')} className="opacity-40 group-hover:opacity-100 transition-all text-blue-600"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg></button>
+                  </div>
+                </div>
+                <div className="group cursor-pointer border-t border-slate-50 pt-3">
+                  <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Banco</span>
+                  <span className="font-black text-slate-900 text-[10px] block uppercase tracking-tight">0169 R4 BANCO MICRO FINANCIERO</span>
+                </div>
               </div>
             </div>
 
@@ -269,6 +265,63 @@ const Purchase: React.FC = () => {
           </form>
         </div>
       </div>
+
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        title="Confirmar Reporte"
+        footer={
+          <div className="flex w-full gap-4">
+            <Button variant="ghost" onClick={() => setIsConfirmModalOpen(false)} fullWidth className="text-slate-400 font-black">
+              Cancelar
+            </Button>
+            <Button variant="blue" onClick={handleFinalSubmit} fullWidth className="font-black">
+              Sí, Confirmar Datos
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          <div className="p-6 bg-amber-50 border-2 border-amber-100 rounded-3xl flex items-start gap-4">
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-black text-amber-900 uppercase tracking-wide text-xs mb-2">⚠️ Verifica tus datos antes de enviar</h4>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                Estás reportando el pago para <span className="font-black">{form.count} tickets</span> por un total de <span className="font-black">{(raffle.ticket_price * form.count).toLocaleString()} {raffle.currency || 'Bs'}</span>.
+                <br /><br />
+                Por favor confirma que tu <span className="font-black">Cédula ({form.dni})</span>, <span className="font-black">Email ({form.email})</span> y <span className="font-black">WhatsApp ({form.whatsapp})</span> son correctos.
+              </p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <h4 className="font-black text-slate-900 uppercase tracking-widest text-[10px]">Términos y Condiciones</h4>
+            <div className="max-h-60 overflow-y-auto bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+              <p className="text-xs text-slate-500 font-bold italic mb-4">Por favor, lee y acepta nuestros términos para participar.</p>
+              
+              {[
+                "Los números disponibles para la compra en cada sorteo se especificarán en la página de detalles correspondientes a cada sorteo.",
+                "Debes verificar tu compra antes de confirmarla haciendo clic en \"Comprar\". No realizamos reembolsos por errores cometidos por el usuario.",
+                "Los tickets se enviarán en un plazo máximo de 24 horas, debido al alto volumen de pagos por procesar.",
+                "Solo pueden participar personas naturales mayores de 18 años con nacionalidad venezolana o extranjeros. Los ganadores en el extranjero deberán designar a una persona de confianza en Venezuela para recibir el premio.",
+                "Los premios deben retirarse en persona en la ubicación designada para cada sorteo. Realizamos entregas personales únicamente en la dirección indicada por el ganador del primer premio o premio mayor.",
+                "La compra mínima requerida para participar es de tres (03) tickets. Estos se asignarán de manera aleatoria y se enviarán al correo electrónico proporcionados.",
+                "Tienes un plazo de 72 horas para reclamar tu premio.",
+                "Los ganadores aceptan aparecer en el contenido audiovisual del sorteo, mostrando su presencia en redes sociales y durante la entrega de premios. Esto es OBLIGATORIO."
+              ].map((term, index) => (
+                <div key={index} className="flex gap-3 items-start">
+                  <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white font-black text-[10px]">{index + 1}</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed text-justify">{term}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

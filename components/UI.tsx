@@ -98,8 +98,9 @@ export const Modal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  children: React.ReactNode
-}> = ({ isOpen, onClose, title, children }) => {
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+}> = ({ isOpen, onClose, title, children, footer }) => {
   if (!isOpen) return null;
 
   return (
@@ -114,8 +115,8 @@ export const Modal: React.FC<{
         <div className="p-8 overflow-y-auto flex-1 text-slate-600 leading-relaxed font-medium">
           {children}
         </div>
-        <div className="p-8 border-t border-blue-50 flex justify-end">
-          <Button onClick={onClose} variant="blue">Entendido</Button>
+        <div className="p-8 border-t border-blue-50 flex justify-end gap-4">
+          {footer ? footer : <Button onClick={onClose} variant="blue">Entendido</Button>}
         </div>
       </div>
     </div>
