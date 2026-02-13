@@ -51,7 +51,7 @@ export const Header: React.FC = () => {
             {/* Social Media Buttons (Desktop only) */}
             <div className="hidden md:flex items-center gap-3">
               <a
-                href="https://www.instagram.com/cambiatuvidacondavid/"
+                href="https://www.instagram.com/_u/cambiatuvidacondavid/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center text-white hover:scale-110 transition-transform shadow-lg"
@@ -117,7 +117,7 @@ export const Header: React.FC = () => {
             {/* Social Media Links for Mobile */}
             <div className="flex gap-4 mt-4 pt-4 border-t border-slate-100">
               <a
-                href="https://www.instagram.com/cambiatuvidacondavid/"
+                href="https://www.instagram.com/_u/cambiatuvidacondavid/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center gap-3 p-4 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 text-white rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all active:scale-95"
@@ -190,7 +190,7 @@ export const Footer: React.FC = () => {
 
             <div className="flex items-center justify-center md:hidden gap-4 pt-2">
               <a
-                href="https://www.instagram.com/cambiatuvidacondavid/"
+                href="https://www.instagram.com/_u/cambiatuvidacondavid/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
