@@ -176,8 +176,12 @@ const Home: React.FC = () => {
 
       {/* 🌟 HERO BRANDING */}
       <div className="flex flex-col items-center gap-8 mb-20 animate-in fade-in zoom-in duration-1000 z-10">
-        <div className="w-48 h-48 md:w-64 md:h-64 rounded-[4rem] overflow-hidden shadow-2xl border-[12px] border-white ring-4 ring-blue-100 bg-white transform hover:scale-105 transition-transform duration-500">
-          <img src="/logo_full.jpg" alt="Logo Hero" className="w-full h-full object-cover" />
+        <div className="w-full max-w-[560px] md:max-w-[860px] aspect-[16/9] rounded-[3rem] overflow-hidden shadow-2xl border-[10px] md:border-[14px] border-white ring-4 ring-blue-100 bg-white transform hover:scale-[1.02] transition-transform duration-500">
+          <div className="w-full h-full p-5 md:p-7">
+            <div className="w-full h-full rounded-[2.5rem] overflow-hidden">
+              <img src="/logo_full.jpg" alt="Logo Hero" className="w-full h-full object-contain" />
+            </div>
+          </div>
         </div>
         <div className="text-center space-y-3">
           <h1 className="text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter leading-none italic">

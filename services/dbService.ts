@@ -45,7 +45,23 @@ export const dbService = {
 
   // --- 2. RIFAS ---
   async getRaffles() {
-    const { data, error } = await supabasePublic.from('raffles').select('*').order('created_at', { ascending: false });
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error('Configuración de Supabase incompleta (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).');
+    }
+
+    const queryPromise = supabasePublic
+      .from('raffles')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const timeoutMs = 15000;
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout cargando rifas. Verifica conexión a Supabase.')), timeoutMs)
+    );
+
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+    if (error) handleDBError(error, 'getRaffles');
+
     return (data || []) as Raffle[];
   },
 

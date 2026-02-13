@@ -90,6 +90,7 @@ const App: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Refresh Error:", error);
+      setDbError(error?.message || 'Error cargando datos');
     } finally {
       setIsLoading(false);
     }
