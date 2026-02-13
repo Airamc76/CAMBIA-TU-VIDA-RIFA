@@ -3,16 +3,16 @@ import { Link, useLocation } from 'react-router-dom';
 import { Modal, Button } from './UI';
 
 const openInstagram = (e: React.MouseEvent) => {
-  e.preventDefault();
-  const username = 'cambiatuvidacondavid';
   const isAndroid = /Android/i.test(navigator.userAgent);
 
   if (isAndroid) {
-    const url = `intent://instagram.com/_u/${username}/#Intent;package=com.instagram.android;scheme=https;S.browser_fallback_url=https://www.instagram.com/${username}/;end`;
+    e.preventDefault();
+    const username = 'cambiatuvidacondavid';
+    // Use scheme=instagram which targets the app directly
+    const url = `intent://user?username=${username}#Intent;package=com.instagram.android;scheme=instagram;S.browser_fallback_url=https://www.instagram.com/${username}/;end`;
     window.location.href = url;
-  } else {
-    window.open(`https://www.instagram.com/${username}/`, '_blank');
   }
+  // For iOS/Desktop, let the link handle it naturally
 };
 
 export const Header: React.FC = () => {
