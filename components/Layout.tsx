@@ -8,8 +8,8 @@ const openInstagram = (e: React.MouseEvent) => {
   if (isAndroid) {
     e.preventDefault();
     const username = 'cambiatuvidacondavid';
-    // Use https scheme with _u path which is the standard deep link for profiles
-    const url = `intent://www.instagram.com/_u/${username}/#Intent;package=com.instagram.android;scheme=https;action=android.intent.action.VIEW;S.browser_fallback_url=https://www.instagram.com/${username}/;end`;
+    // Use instagram:// scheme which is more aggressive in forcing the app to open the profile
+    const url = `intent://user?username=${username}#Intent;package=com.instagram.android;scheme=instagram;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;S.browser_fallback_url=https://www.instagram.com/${username}/;end`;
     window.location.href = url;
   }
   // For iOS/Desktop, let the link handle it naturally
