@@ -7,8 +7,11 @@ const openInstagram = (e: React.MouseEvent) => {
 
   if (isAndroid) {
     e.preventDefault();
-    // Simple HTTPS App Link with _u path, navigating in same tab to trigger App Link interception
-    window.location.href = 'https://www.instagram.com/_u/cambiatuvidacondavid/';
+    const username = 'cambiatuvidacondavid';
+    // Simplified Intent for Instagram to avoid intent filter mismatches
+    // Uses instagram://user?username=... scheme wrapped in Chrome Intent
+    const url = `intent://user?username=${username}#Intent;package=com.instagram.android;scheme=instagram;S.browser_fallback_url=https://www.instagram.com/${username}/;end`;
+    window.location.href = url;
   }
   // For iOS/Desktop, let the link handle it naturally (target="_blank")
 };
