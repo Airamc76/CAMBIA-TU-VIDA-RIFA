@@ -7,11 +7,8 @@ const openInstagram = (e: React.MouseEvent) => {
 
   if (isAndroid) {
     e.preventDefault();
-    const username = 'cambiatuvidacondavid';
-    // Simplified Intent for Instagram to avoid intent filter mismatches
-    // Uses instagram://user?username=... scheme wrapped in Chrome Intent
-    const url = `intent://user?username=${username}#Intent;package=com.instagram.android;scheme=instagram;S.browser_fallback_url=https://www.instagram.com/${username}/;end`;
-    window.location.href = url;
+    // Use standard HTTPS URL. Android App Links should intercept this standard path.
+    window.location.href = 'https://www.instagram.com/cambiatuvidacondavid/';
   }
   // For iOS/Desktop, let the link handle it naturally (target="_blank")
 };
