@@ -7,8 +7,11 @@ const openInstagram = (e: React.MouseEvent) => {
 
   if (isAndroid) {
     e.preventDefault();
-    // Use standard HTTPS URL. Android App Links should intercept this standard path.
-    window.location.href = 'https://www.instagram.com/cambiatuvidacondavid/';
+    const username = 'cambiatuvidacondavid';
+    // Force Instagram App using Intent with https scheme and specific package
+    // This tells Android: "Open https://instagram.com/_u/... specifically with com.instagram.android"
+    const url = `intent://www.instagram.com/_u/${username}/#Intent;package=com.instagram.android;scheme=https;S.browser_fallback_url=https://www.instagram.com/${username}/;end`;
+    window.location.href = url;
   }
   // For iOS/Desktop, let the link handle it naturally (target="_blank")
 };
