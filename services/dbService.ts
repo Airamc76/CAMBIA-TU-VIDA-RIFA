@@ -52,6 +52,7 @@ export const dbService = {
     const queryPromise = supabasePublic
       .from('raffles')
       .select('*')
+      .neq('status', 'deleted')
       .order('created_at', { ascending: false });
 
     const timeoutMs = 15000;
@@ -150,12 +151,17 @@ export const dbService = {
   },
 
   // --- 4. ADMIN ---
-  async getPendingPurchaseRequests() {
-    const { data, error } = await supabase
+  async getPurchaseRequests(status?: 'pending' | 'approved' | 'rejected') {
+    let query = supabase
       .from('purchase_requests')
       .select('*, raffles:raffle_id(title)')
-      .eq('status', 'pending')
       .order('created_at', { ascending: false });
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query;
 
     if (error) handleDBError(error, 'listar solicitudes');
 
@@ -171,9 +177,110 @@ export const dbService = {
       ref: p.reference,
       date: new Date(p.created_at).toLocaleDateString(),
       ticketsCount: p.ticket_qty,
-      status: 'pendiente',
+      status: p.status === 'approved' ? 'aprobado' : p.status === 'rejected' ? 'rechazado' : 'pendiente',
       evidence_url: p.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${p.receipt_path}` : null
     }));
+  },
+
+  async getPendingPurchaseRequests() {
+    return this.getPurchaseRequests('pending');
+  },
+
+  async getAdminStats() {
+    // Ajuste de zona horaria Venezuela (UTC-4)
+    // Calculamos el inicio del día de hoy en hora local venezolana -> pasamos a UTC para la query
+    const now = new Date();
+    // Venezuela es UTC-4, así que restamos 4h para obtener hora local VE
+    const VE_OFFSET_MS = 4 * 60 * 60 * 1000;
+    const nowVE = new Date(now.getTime() - VE_OFFSET_MS);
+    // Inicio del día en VE (medianoche local)
+    const startOfDayVE = new Date(nowVE);
+    startOfDayVE.setUTCHours(0, 0, 0, 0);
+    // Convertir ese inicio de día VE de vuelta a UTC
+    const startOfDayUTC = new Date(startOfDayVE.getTime() + VE_OFFSET_MS);
+
+    // Traemos todos los approved/rejected del historial para la query de hoy
+    const { data, error } = await supabase
+      .from('purchase_requests')
+      .select('status, amount, created_at')
+      .gte('created_at', startOfDayUTC.toISOString());
+
+    if (error) throw error;
+
+    const stats = {
+      pending: 0,
+      approvedToday: 0,
+      rejectedToday: 0,
+      totalAmountToday: 0
+    };
+
+    data?.forEach(p => {
+      if (p.status === 'pending') stats.pending++;
+      if (p.status === 'approved') {
+        stats.approvedToday++;
+        stats.totalAmountToday += Number(p.amount || 0);
+      }
+      if (p.status === 'rejected') stats.rejectedToday++;
+    });
+
+    // Para el contador global de pendientes (no solo hoy)
+    const { count: globalPending } = await supabase
+      .from('purchase_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
+
+    stats.pending = globalPending || 0;
+
+    return stats;
+  },
+
+  async getDailyHistory() {
+    // Trae todos los aprobados y rechazados, agrupados por fecha venezolana
+    const { data, error } = await supabase
+      .from('purchase_requests')
+      .select('*, raffles:raffle_id(title)')
+      .in('status', ['approved', 'rejected'])
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const VE_OFFSET_MS = 4 * 60 * 60 * 1000;
+
+    // Agrupar por fecha local Venezuela
+    const grouped: Record<string, { date: string; totalBs: number; count: number; items: any[] }> = {};
+
+    (data || []).forEach(p => {
+      const localDate = new Date(new Date(p.created_at).getTime() - VE_OFFSET_MS);
+      const dateKey = localDate.toISOString().split('T')[0]; // YYYY-MM-DD
+      const displayDate = localDate.toLocaleDateString('es-VE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = { date: displayDate, totalBs: 0, count: 0, items: [] };
+      }
+
+      const item = {
+        id: p.id,
+        user: p.full_name,
+        dni: p.national_id,
+        raffle: (p.raffles as any)?.title,
+        amount: Number(p.amount || 0),
+        ticketsCount: p.ticket_qty,
+        status: p.status,
+        evidence_url: p.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${p.receipt_path}` : null,
+        time: localDate.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      grouped[dateKey].items.push(item);
+      if (p.status === 'approved') {
+        grouped[dateKey].totalBs += Number(p.amount || 0);
+        grouped[dateKey].count++;
+      }
+    });
+
+    // Retornar como array ordenado de más reciente a más antiguo
+    return Object.entries(grouped)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([key, val]) => ({ dateKey: key, ...val }));
   },
 
   async updatePurchaseStatus(id: string, status: 'approved' | 'rejected') {

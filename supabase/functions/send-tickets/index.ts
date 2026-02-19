@@ -88,6 +88,15 @@ serve(async (req) => {
               ${ticketNumbersString || 'Pendiente de asignación'}
             </div>
 
+            <div style="text-align: center; margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; color: white;">
+              <p style="margin: 0; font-size: 18px; font-weight: bold; line-height: 1.6;">
+                Muchos pueden tener más cosas que tú, pero tú tienes a Dios y él es el proveedor de todas las cosas.
+              </p>
+              <p style="margin: 15px 0 0 0; font-size: 16px; font-style: italic;">
+                Los sueños sí se cumplen
+              </p>
+            </div>
+
             <p style="font-size: 12px; color: #64748b;">
               Si tienes alguna duda, contáctanos por WhatsApp. ¡Mucha suerte!
             </p>

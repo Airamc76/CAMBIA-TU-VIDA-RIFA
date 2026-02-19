@@ -10,7 +10,7 @@ type AuthStep = 'login' | 'mfa-setup' | 'mfa-verify';
 
 const AdminPagos: React.FC = () => {
   const navigate = useNavigate();
-  const { raffles, purchases, userRole, setUserRole, refreshData, updatePurchaseStatus } = useRaffles();
+  const { raffles, purchases, userRole, setUserRole, refreshData } = useRaffles();
 
   // --- BUSCADOR DE GANADORES ---
   const [searchRaffleId, setSearchRaffleId] = useState('');
@@ -30,6 +30,18 @@ const AdminPagos: React.FC = () => {
   const [viewingEvidence, setViewingEvidence] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
+  // --- NUEVAS ESTADO DASHBOARD ---
+  const [activeTab, setActiveTab] = useState<'pendientes' | 'historial'>('pendientes');
+  const [stats, setStats] = useState({ pending: 0, approvedToday: 0, rejectedToday: 0, totalAmountToday: 0 });
+  const [historyPurchases, setHistoryPurchases] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [localLoading, setLocalLoading] = useState(false);
+
+  // --- PANEL HISTORIAL POR DÍA ---
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
+  const [dailyHistory, setDailyHistory] = useState<any[]>([]);
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -47,7 +59,7 @@ const AdminPagos: React.FC = () => {
             } else {
               setIsLogged(true);
               setUserRole(role);
-              await refreshData();
+              await handleFetchData();
             }
           } else {
             console.warn("Portal Pagos: No autorizado.");
@@ -61,7 +73,31 @@ const AdminPagos: React.FC = () => {
       }
     };
     checkAuth();
-  }, [setUserRole, refreshData]);
+  }, [setUserRole]);
+
+  const handleFetchData = async () => {
+    setLocalLoading(true);
+    try {
+      await refreshData(); // Actualiza pendientes en el context global
+      const [s, hApproved, hRejected, daily] = await Promise.all([
+        dbService.getAdminStats(),
+        dbService.getPurchaseRequests('approved'),
+        dbService.getPurchaseRequests('rejected'),
+        dbService.getDailyHistory()
+      ]);
+      setStats(s);
+      setHistoryPurchases([...hApproved, ...hRejected].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      setDailyHistory(daily);
+      // Expandir automáticamente el día de hoy
+      if (daily.length > 0) {
+        setExpandedDays(prev => ({ ...prev, [daily[0].dateKey]: true }));
+      }
+    } catch (err) {
+      console.error("Error fetching admin data:", err);
+    } finally {
+      setLocalLoading(false);
+    }
+  };
 
   const handleInitiateChallenge = async (factorId: string) => {
     try {
@@ -158,9 +194,8 @@ const AdminPagos: React.FC = () => {
   const handleAction = async (id: string, action: 'approved' | 'rejected') => {
     setProcessingId(id);
     try {
-      // LLAMADA A LA NUEVA LÓGICA DE VALIDACIÓN (Edge Function)
       await dbService.updatePurchaseStatus(id, action);
-      await refreshData();
+      await handleFetchData();
     } catch (err: any) {
       setAuthError(err.message);
     } finally {
@@ -190,7 +225,11 @@ const AdminPagos: React.FC = () => {
     }
   };
 
-  if (checking) return <div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>;
+  if (checking) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
 
   if (!isLogged) {
     return (
@@ -198,17 +237,31 @@ const AdminPagos: React.FC = () => {
         <div className="bg-white p-10 md:p-14 rounded-[4rem] max-w-md w-full border border-blue-100 shadow-2xl space-y-10">
           <div className="text-center space-y-4">
             <div className="w-32 h-32 rounded-[2.5rem] overflow-hidden mx-auto shadow-2xl border-4 border-white">
-              <img src="/logo_full.jpg" alt="Logo" className="w-full h-full object-cover" />
+              <img src="/brand_logo_final.jpg" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-3xl font-black text-slate-900 uppercase italic">Personal de Pagos</h1>
           </div>
 
-          {authError && <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-[10px] font-black uppercase text-center">⚠️ {authError}</div>}
+          {authError && (
+            <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-[10px] font-black uppercase text-center">⚠️ {authError}</div>
+          )}
 
           {authStep === 'login' && (
             <form onSubmit={handleLogin} className="space-y-6">
-              <Input label="Email Staff" type="email" value={credentials.email} onChange={e => setCredentials({ ...credentials, email: e.target.value })} required />
-              <Input label="Contraseña" type="password" value={credentials.pass} onChange={e => setCredentials({ ...credentials, pass: e.target.value })} required />
+              <Input
+                label="Email Staff"
+                type="email"
+                value={credentials.email}
+                onChange={e => setCredentials({ ...credentials, email: e.target.value })}
+                required
+              />
+              <Input
+                label="Contraseña"
+                type="password"
+                value={credentials.pass}
+                onChange={e => setCredentials({ ...credentials, pass: e.target.value })}
+                required
+              />
               <Button type="submit" disabled={isLoading} fullWidth variant="blue" className="py-6 text-xl">Ingresar</Button>
             </form>
           )}
@@ -223,7 +276,16 @@ const AdminPagos: React.FC = () => {
                   <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Escanea con Google Authenticator</p>
                 </div>
               )}
-              <Input label="Código 2FA" type="text" maxLength={6} placeholder="000000" className="text-center text-4xl font-black" value={mfaCode} onChange={e => setMfaCode(e.target.value.replace(/\D/g, ''))} required />
+              <Input
+                label="Código 2FA"
+                type="text"
+                maxLength={6}
+                placeholder="000000"
+                className="text-center text-4xl font-black"
+                value={mfaCode}
+                onChange={e => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                required
+              />
               <Button type="submit" disabled={isLoading || mfaCode.length < 6} fullWidth variant="blue" className="py-6 text-xl">Confirmar</Button>
             </form>
           )}
@@ -245,15 +307,61 @@ const AdminPagos: React.FC = () => {
           <button onClick={() => setAuthError(null)} className="opacity-40 hover:opacity-100 text-[10px] font-black uppercase tracking-widest">Cerrar</button>
         </div>
       )}
-      <div className="flex flex-col md:flex-row justify-between items-end border-b border-slate-100 pb-12 gap-6">
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-slate-100 pb-12 gap-8 relative">
         <div className="space-y-4">
-          <h1 className="text-5xl md:text-6xl font-black text-[#0f172a] tracking-tighter uppercase italic">Conciliación</h1>
-          <p className="text-slate-400 font-black uppercase tracking-[0.3em] text-[10px]">Staff: <span className="text-blue-600">{userRole?.toUpperCase()}</span> • {purchases.length} Pendientes</p>
+          <div className="inline-flex items-center gap-3 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100">
+            <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
+            Panel de Tesorería v2.0
+          </div>
+          <h1 className="text-5xl md:text-7xl font-black text-[#0f172a] tracking-tight uppercase italic leading-none">Gestión de <span className="text-blue-600">Pagos</span></h1>
+          <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[11px] flex items-center gap-2">
+            Staff: <span className="text-slate-900 border-b-2 border-blue-200">{userRole?.toUpperCase()}</span>
+            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+            {stats.pending} Por Conciliar
+          </p>
         </div>
-        <div className="flex gap-4">
-          <Button onClick={() => refreshData()} variant="ghost">Actualizar</Button>
-          <Button onClick={handleLogout} variant="danger">Salir</Button>
+        <div className="flex gap-4 w-full md:w-auto">
+          <Button
+            onClick={() => setShowHistoryDrawer(true)}
+            variant="ghost"
+            className="flex-1 md:flex-none border border-slate-100 bg-white hover:bg-slate-50 shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+            Historial por Día
+          </Button>
+          <Button onClick={() => handleFetchData()} variant="ghost" className="flex-1 md:flex-none border border-slate-100 bg-white hover:bg-slate-50 shadow-sm">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            Refrescar
+          </Button>
+          <Button onClick={handleLogout} variant="danger" className="flex-1 md:flex-none">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            Cerrar Sesión
+          </Button>
         </div>
+      </div>
+
+      {/* 📊 SECCIÓN: ESTADÍSTICAS RÁPIDAS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { label: 'Pendientes', value: stats.pending, sub: 'Acción requerida', color: 'bg-amber-500', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+          { label: 'Aprobados Hoy', value: stats.approvedToday, sub: 'Transacciones exitosas', color: 'bg-green-500', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+          { label: 'Ingresos Hoy', value: `${stats.totalAmountToday} BS`, sub: 'Volumen operado', color: 'bg-blue-600', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+          { label: 'Rechazados Hoy', value: stats.rejectedToday, sub: 'Revisiones fallidas', color: 'bg-rose-500', icon: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z' },
+        ].map((item, idx) => (
+          <div key={idx} className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-xl hover:translate-y-[-4px] transition-all duration-300 group">
+            <div className="flex justify-between items-start mb-6">
+              <div className={`${item.color} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d={item.icon} /></svg>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{item.label}</p>
+              <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{item.value}</h3>
+              <p className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">{item.sub}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* 🏆 SECCIÓN: BUSCADOR DE GANADORES (REDESIGN) */}
@@ -330,88 +438,327 @@ const AdminPagos: React.FC = () => {
                 <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No se encontró poseedor o el ticket no está vendido</p>
               </div>
             ) : (
-              <div className="bg-blue-600 p-8 md:p-14 rounded-[4rem] text-white shadow-2xl shadow-blue-500/30 flex flex-col md:flex-row justify-between gap-12 relative overflow-hidden group/result">
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
-                <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+              <div className="bg-blue-600 p-8 md:p-14 rounded-[4rem] text-white shadow-2xl shadow-blue-500/30 flex flex-col gap-10 relative overflow-hidden group/result">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+                <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
 
-                <div className="space-y-8 relative">
-                  <div className="inline-flex px-6 py-2 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/30">
-                    Ganador Identificado ✓
+                {/* FILA PRINCIPAL: Nombre + Contacto */}
+                <div className="flex flex-col md:flex-row justify-between gap-10 relative">
+                  <div className="space-y-6">
+                    <div className="inline-flex px-6 py-2 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/30">
+                      Ganador Identificado ✓
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-blue-200 font-black uppercase text-[10px] tracking-[0.3em]">Cédula: {winnerResult.national_id}</p>
+                      <h3 className="text-5xl md:text-7xl font-black tracking-tighter leading-none">{winnerResult.full_name}</h3>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-blue-200 font-black uppercase text-[10px] tracking-[0.3em]">Cédula: {winnerResult.national_id}</p>
-                    <h3 className="text-5xl md:text-7xl font-black tracking-tighter leading-none">{winnerResult.full_name}</h3>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:min-w-[480px] relative">
-                  <div className="space-y-4 bg-white/10 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 hover:bg-white/20 transition-all duration-300">
-                    <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">WhatsApp Directo</p>
-                    <a href={`https://wa.me/${winnerResult.whatsapp}`} target="_blank" rel="noreferrer" className="flex items-center gap-5 group/wa">
-                      <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-blue-600 shadow-xl group-hover/wa:scale-110 transition-transform duration-300">
-                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.481 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.996-.001-3.951-.5-5.688-1.448l-6.305 1.656zm6.547-3.892c1.556.924 3.485 1.487 5.391 1.488 5.733 0 10.398-4.664 10.401-10.397.002-2.78-1.082-5.392-3.048-7.36s-4.577-3.049-7.359-3.049c-5.731 0-10.397 4.665-10.398 10.397 0 1.979.527 3.91 1.529 5.59l-.993 3.626 3.877-1.019zm11.232-6.582c-.319-.16-1.887-.931-2.181-1.038-.295-.108-.51-.16-.723.16-.214.32-.83.83-1.021 1.038-.192.208-.384.234-.703.075-.319-.16-1.348-.497-2.568-1.587-.948-.846-1.59-1.891-1.775-2.211-.184-.32-.02-.493.14-.652.143-.144.319-.374.479-.56.16-.186.213-.32.32-.534.107-.213.053-.4-.027-.56-.08-.16-.723-1.741-.992-2.388-.261-.634-.526-.547-.723-.547-.186-.006-.4-.006-.613-.006s-.559.08-.851.4c-.292.32-1.117 1.094-1.117 2.668s1.144 3.1 1.304 3.307c.16.208 2.25 3.434 5.449 4.815.762.328 1.355.525 1.817.671.765.243 1.46.208 2.01.127.613-.09 1.887-.771 2.153-1.516.267-.745.267-1.383.186-1.516-.081-.132-.295-.213-.615-.373z" /></svg>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:min-w-[420px] relative">
+                    <div className="space-y-4 bg-white/10 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 hover:bg-white/20 transition-all duration-300">
+                      <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">WhatsApp Directo</p>
+                      <a href={`https://wa.me/${winnerResult.whatsapp}`} target="_blank" rel="noreferrer" className="flex items-center gap-5 group/wa">
+                        <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-blue-600 shadow-xl group-hover/wa:scale-110 transition-transform duration-300">
+                          <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.481 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.996-.001-3.951-.5-5.688-1.448l-6.305 1.656zm6.547-3.892c1.556.924 3.485 1.487 5.391 1.488 5.733 0 10.398-4.664 10.401-10.397.002-2.78-1.082-5.392-3.048-7.36s-4.577-3.049-7.359-3.049c-5.731 0-10.397 4.665-10.398 10.397 0 1.979.527 3.91 1.529 5.59l-.993 3.626 3.877-1.019zm11.232-6.582c-.319-.16-1.887-.931-2.181-1.038-.295-.108-.51-.16-.723.16-.214.32-.83.83-1.021 1.038-.192.208-.384.234-.703.075-.319-.16-1.348-.497-2.568-1.587-.948-.846-1.59-1.891-1.775-2.211-.184-.32-.02-.493.14-.652.143-.144.319-.374.479-.56.16-.186.213-.32.32-.534.107-.213.053-.4-.027-.56-.08-.16-.723-1.741-.992-2.388-.261-.634-.526-.547-.723-.547-.186-.006-.4-.006-.613-.006s-.559.08-.851.4c-.292.32-1.117 1.094-1.117 2.668s1.144 3.1 1.304 3.307c.16.208 2.25 3.434 5.449 4.815.762.328 1.355.525 1.817.671.765.243 1.46.208 2.01.127.613-.09 1.887-.771 2.153-1.516.267-.745.267-1.383.186-1.516-.081-.132-.295-.213-.615-.373z" /></svg>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-black text-xl tracking-tighter">{winnerResult.whatsapp}</span>
+                          <span className="text-[10px] font-black uppercase opacity-60">Ponerse en contacto</span>
+                        </div>
+                      </a>
+                    </div>
+                    <div className="space-y-4 bg-white/10 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 hover:bg-white/20 transition-all duration-300">
+                      <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Correo Electrónico</p>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-black text-xl tracking-tighter truncate max-w-[180px] md:max-w-none">{winnerResult.email}</span>
+                        <span className="text-[10px] font-black uppercase opacity-60">Historial enviado</span>
                       </div>
-                      <div className="flex flex-col">
-                        <span className="font-black text-2xl tracking-tighter">{winnerResult.whatsapp}</span>
-                        <span className="text-[10px] font-black uppercase opacity-60">Ponerse en contacto</span>
-                      </div>
-                    </a>
-                  </div>
-                  <div className="space-y-4 bg-white/10 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 hover:bg-white/20 transition-all duration-300">
-                    <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Correo Electrónico</p>
-                    <div className="flex flex-col gap-1">
-                      <span className="font-black text-xl tracking-tighter truncate max-w-[180px] md:max-w-none">{winnerResult.email}</span>
-                      <span className="text-[10px] font-black uppercase opacity-60">Historial enviado</span>
                     </div>
                   </div>
                 </div>
+
+                {/* FILA DE TICKETS: todos los números, el buscado destacado */}
+                {winnerResult.assigned_numbers && winnerResult.assigned_numbers.length > 0 && (
+                  <div className="relative border-t border-white/20 pt-8 space-y-5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Sus números en esta rifa</p>
+                      <span className="text-[9px] font-black text-yellow-300 uppercase tracking-widest bg-yellow-400/20 px-3 py-1 rounded-full border border-yellow-400/30">
+                        🎯 #{searchTicket} Buscado
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      {[...winnerResult.assigned_numbers].sort((a: number, b: number) => a - b).map((num: number) => {
+                        const isSearched = String(num) === String(searchTicket);
+                        return (
+                          <div
+                            key={num}
+                            className={`relative flex flex-col items-center justify-center rounded-2xl px-4 py-3 transition-all duration-300 ${isSearched
+                                ? 'bg-yellow-400 text-slate-900 shadow-xl shadow-yellow-400/40 scale-110 ring-2 ring-white/60'
+                                : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'
+                              }`}
+                          >
+                            {isSearched && (
+                              <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[8px] font-black uppercase tracking-wider bg-yellow-400 text-slate-900 px-2 py-0.5 rounded-full whitespace-nowrap shadow-sm">
+                                ★ Este
+                              </span>
+                            )}
+                            <span className={`text-[8px] font-black uppercase tracking-widest leading-none mb-0.5 ${isSearched ? 'text-slate-600' : 'text-white/40'}`}>Ticket</span>
+                            <span className={`font-black text-lg tracking-tighter leading-none ${isSearched ? 'text-slate-900' : ''}`}>{num}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         )}
       </div>
 
-      <div className="bg-white rounded-[4rem] border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">
-              <tr>
-                <th className="px-12 py-8">Comprador</th>
-                <th className="px-12 py-8 text-center">Referencia</th>
-                <th className="px-12 py-8">Monto</th>
-                <th className="px-12 py-8 text-right">Acción</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {purchases.map(p => (
-                <tr key={p.id} className="hover:bg-slate-50">
-                  <td className="px-12 py-10">
-                    <div className="font-black text-[#0f172a] text-xl tracking-tighter">{p.user}</div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase">{p.raffle}</div>
-                  </td>
-                  <td className="px-12 py-10 text-center">
-                    <button onClick={() => setViewingEvidence(p.evidence_url!)} className="w-12 h-12 rounded-xl border border-slate-200 overflow-hidden mb-1"><img src={p.evidence_url} className="w-full h-full object-cover" alt="Comprobante" /></button>
-                    <div className="text-[9px] font-black text-blue-600">REF: {p.ref}</div>
-                  </td>
-                  <td className="px-12 py-10">
-                    <div className="text-[#0f172a] font-black text-2xl tracking-tighter">{p.amount} BS</div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase">{p.ticketsCount} TICKETS</div>
-                  </td>
-                  <td className="px-12 py-10 text-right">
-                    <div className="flex justify-end gap-3">
-                      {processingId === p.id ? <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div> : (
-                        <><button onClick={() => handleAction(p.id, 'approved')} className="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase">Aprobar</button>
-                          <button onClick={() => handleAction(p.id, 'rejected')} className="bg-red-50 text-red-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase">Rechazar</button></>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* 🔍 BARRA DE ACCIÓN: TABS + BUSCADOR */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-900/5 p-4 rounded-[2.5rem] border border-slate-100">
+        <div className="flex bg-white/50 backdrop-blur-md p-1.5 rounded-3xl border border-white shadow-inner w-full md:w-auto">
+          <button
+            onClick={() => setActiveTab('pendientes')}
+            className={`flex-1 md:flex-none px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === 'pendientes' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            Pendientes ({stats.pending})
+          </button>
+          <button
+            onClick={() => setActiveTab('historial')}
+            className={`flex-1 md:flex-none px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === 'historial' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            Historial ({historyPurchases.length})
+          </button>
+        </div>
+
+        <div className="relative w-full md:max-w-md group">
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar por nombre, DNI o referencia..."
+            className="w-full bg-white border-2 border-slate-50 rounded-[2rem] pl-16 pr-6 py-4 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 focus:ring-8 focus:ring-blue-500/5 transition-all shadow-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
-      {viewingEvidence && <div className="fixed inset-0 z-[60] bg-slate-900/95 flex items-center justify-center p-8" onClick={() => setViewingEvidence(null)}><img src={viewingEvidence} className="max-w-full max-h-full rounded-3xl" alt="Ampliación Comprobante" /></div>}
+
+      {/* 📋 LISTADO DE TRANSACCIONES */}
+      <div className="bg-white rounded-[4rem] border border-slate-100 shadow-xl overflow-hidden min-h-[400px]">
+        {localLoading ? (
+          <div className="flex flex-col items-center justify-center py-32 space-y-4">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Sincronizando registros...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-slate-50/50 text-slate-400 text-[9px] font-black uppercase tracking-[0.3em]">
+                <tr>
+                  <th className="px-10 py-6">Comprador / Sorteo</th>
+                  <th className="px-10 py-6 text-center">Evidencia</th>
+                  <th className="px-10 py-6">Monto & Tickets</th>
+                  <th className="px-10 py-6 text-center">Estado</th>
+                  <th className="px-10 py-6 text-right">Detalles</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {(activeTab === 'pendientes' ? purchases : historyPurchases)
+                  .filter(p =>
+                    p.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    p.dni.includes(searchTerm) ||
+                    p.ref.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map(p => (
+                    <tr key={p.id} className="hover:bg-blue-50/30 transition-colors group">
+                      <td className="px-10 py-8">
+                        <div className="flex flex-col">
+                          <span className="font-black text-slate-900 text-lg tracking-tight leading-tight">{p.user}</span>
+                          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{p.raffle}</span>
+                        </div>
+                      </td>
+                      <td className="px-10 py-8 text-center">
+                        <button
+                          onClick={() => setViewingEvidence(p.evidence_url!)}
+                          className="relative w-14 h-14 rounded-2xl border-2 border-slate-100 overflow-hidden hover:border-blue-500 transition-all shadow-sm group/thumb"
+                        >
+                          <img src={p.evidence_url!} className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform" alt="Comprobante" />
+                          <div className="absolute inset-0 bg-blue-600/0 group-hover/thumb:bg-blue-600/20 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-all">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                          </div>
+                        </button>
+                      </td>
+                      <td className="px-10 py-8">
+                        <div className="flex flex-col">
+                          <span className="text-slate-900 font-black text-xl tracking-tighter">{p.amount} BS</span>
+                          <span className="text-[9px] font-black text-blue-600/60 uppercase tracking-widest">{p.ticketsCount} TICKETS</span>
+                        </div>
+                      </td>
+                      <td className="px-10 py-8 text-center">
+                        <span className={`inline-flex px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${p.status === 'pendiente' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                          p.status === 'aprobado' ? 'bg-green-50 text-green-600 border-green-100' :
+                            'bg-rose-50 text-rose-600 border-rose-100'
+                          }`}>
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="px-10 py-8 text-right">
+                        <div className="flex justify-end gap-2">
+                          {p.status === 'pendiente' ? (
+                            processingId === p.id ? (
+                              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => handleAction(p.id, 'approved')}
+                                  className="bg-green-600 hover:bg-green-700 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-green-200 transition-all active:scale-90"
+                                  title="Aprobar"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                                </button>
+                                <button
+                                  onClick={() => handleAction(p.id, 'rejected')}
+                                  className="bg-rose-50 hover:bg-rose-100 text-rose-600 w-10 h-10 rounded-xl flex items-center justify-center border border-rose-100 transition-all active:scale-90"
+                                  title="Rechazar"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                              </>
+                            )
+                          ) : (
+                            <div className="text-[9px] font-black text-slate-300 uppercase italic">Procesado</div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                {((activeTab === 'pendientes' ? purchases : historyPurchases).filter(p =>
+                  p.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  p.dni.includes(searchTerm) ||
+                  p.ref.toLowerCase().includes(searchTerm.toLowerCase())
+                ).length === 0) && (
+                    <tr>
+                      <td colSpan={5} className="py-24 text-center">
+                        <div className="flex flex-col items-center gap-4 opacity-30">
+                          <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+                          <p className="font-black text-xs uppercase tracking-widest">No hay registros que coincidan</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {viewingEvidence && (
+        <div
+          className="fixed inset-0 z-[60] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-300"
+          onClick={() => setViewingEvidence(null)}
+        >
+          <div className="relative max-w-5xl w-full h-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setViewingEvidence(null)}
+              className="absolute top-4 right-4 md:-top-4 md:-right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-900 shadow-2xl hover:scale-110 transition-transform z-[70]"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <img
+              src={viewingEvidence}
+              className="max-w-full max-h-full rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] object-contain transition-all animate-in zoom-in-95 duration-500"
+              alt="Ampliación Comprobante"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 📅 DRAWER: HISTORIAL POR DÍA */}
+      {showHistoryDrawer && (
+        <div className="fixed inset-0 z-[70] flex justify-end">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={() => setShowHistoryDrawer(false)}
+          />
+          {/* Panel deslizante derecha */}
+          <div className="relative w-full max-w-lg h-full bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+            {/* Header */}
+            <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 bg-slate-50/80 backdrop-blur-md shrink-0">
+              <div className="space-y-1">
+                <h2 className="text-xl font-black italic uppercase tracking-tight text-slate-900">Historial por Día</h2>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ingresos aprobados en BS</p>
+              </div>
+              <button
+                onClick={() => setShowHistoryDrawer(false)}
+                className="w-10 h-10 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-200 transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* Contenido scrolleable */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+              {dailyHistory.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-40">
+                  <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                  <p className="text-xs font-black uppercase tracking-widest">Sin historial aún</p>
+                </div>
+              ) : (
+                dailyHistory.map((day) => (
+                  <div key={day.dateKey} className="rounded-3xl border border-slate-100 overflow-hidden shadow-sm">
+                    {/* Cabecera del día (clickable) */}
+                    <button
+                      className="w-full flex items-center justify-between px-6 py-4 bg-white hover:bg-slate-50 transition-colors"
+                      onClick={() => setExpandedDays(prev => ({ ...prev, [day.dateKey]: !prev[day.dateKey] }))}
+                    >
+                      <div className="text-left space-y-0.5">
+                        <p className="text-[11px] font-black text-slate-900 uppercase tracking-wider capitalize leading-none">{day.date}</p>
+                        <p className="text-[10px] font-bold text-slate-400">{day.items.length} transacciones</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="text-lg font-black text-green-600 tracking-tighter leading-none">{day.totalBs.toLocaleString()} BS</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{day.count} aprobados</p>
+                        </div>
+                        <div className={`w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 transition-transform duration-200 ${expandedDays[day.dateKey] ? 'rotate-180' : ''}`}>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Filas del día */}
+                    {expandedDays[day.dateKey] && (
+                      <div className="border-t border-slate-50 divide-y divide-slate-50">
+                        {day.items.map((item: any) => (
+                          <div key={item.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/50 transition-colors">
+                            {/* Status dot */}
+                            <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.status === 'approved' ? 'bg-green-500' : 'bg-rose-400'
+                              }`} />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-black text-slate-900 text-sm truncate leading-tight">{item.user}</p>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">{item.raffle}</p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className={`font-black text-sm tracking-tighter ${item.status === 'approved' ? 'text-green-600' : 'text-rose-400 line-through opacity-60'
+                                }`}>{item.amount.toLocaleString()} BS</p>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase">{item.time}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

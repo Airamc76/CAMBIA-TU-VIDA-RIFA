@@ -173,7 +173,7 @@ const AdminTiforbi: React.FC = () => {
         <div className="bg-[#0c1222] p-8 md:p-12 rounded-[4rem] max-w-sm w-full border border-white/5 shadow-2xl space-y-10 animate-in zoom-in duration-500">
           <div className="text-center space-y-4">
             <div className="w-28 h-28 rounded-[2.5rem] overflow-hidden mx-auto shadow-2xl border-4 border-white/10">
-              <img src="/logo_full.jpg" alt="Logo" className="w-full h-full object-cover" />
+              <img src="/brand_logo_final.jpg" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <div className="space-y-1">
               <h1 className="text-2xl font-black text-white uppercase italic tracking-tighter">

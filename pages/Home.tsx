@@ -163,63 +163,27 @@ const Home: React.FC = () => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-white flex flex-col items-center justify-start py-8 px-4 relative overflow-hidden select-none">
+    <div className="min-h-[calc(100vh-80px)] bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 flex flex-col items-center justify-start py-8 px-4 relative overflow-hidden select-none">
 
-      {/* 🌫️ BACKGROUND BLUR LOGO */}
-      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none flex items-center justify-center overflow-hidden">
+      {/* 🌫️ BACKGROUND IMAGE */}
+      <div className="absolute inset-0 z-0 opacity-40 pointer-events-none overflow-hidden">
         <img
-          src="/logo_full.jpg"
-          alt="Background Logo"
-          className="w-[150%] max-w-none scale-150 blur-3xl transform rotate-12"
+          src="/background.jpg"
+          alt="Background Image"
+          className="w-full h-full object-cover transform scale-110"
         />
       </div>
 
-      {/* 🌟 HERO BRANDING */}
-      <div className="flex flex-col items-center gap-8 mb-20 animate-in fade-in zoom-in duration-1000 z-10">
-        <div className="w-full max-w-[560px] md:max-w-[860px] aspect-[16/9] rounded-[3rem] overflow-hidden shadow-2xl border-[10px] md:border-[14px] border-white ring-4 ring-blue-100 bg-white transform hover:scale-[1.02] transition-transform duration-500">
-          <div className="w-full h-full p-5 md:p-7">
-            <div className="w-full h-full rounded-[2.5rem] overflow-hidden">
-              <img src="/logo_full.jpg" alt="Logo Hero" className="w-full h-full object-contain" />
-            </div>
-          </div>
-        </div>
-        <div className="text-center space-y-3">
-          <h1 className="text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter leading-none italic">
-            SORTEOS EXCLUSIVOS
-          </h1>
-          <p className="text-sm md:text-base font-black text-blue-600 uppercase tracking-[0.3em]">
-            CambiatuvidaConDavid
-          </p>
-        </div>
+      {/* 🏷️ BRAND LOGO (Bottom Left) */}
+      <div className="absolute bottom-8 left-8 z-10 pointer-events-none hidden md:block">
+        <img
+          src="/brand_logo_v3.png"
+          alt="Brand Logo"
+          className="w-80 h-auto transition-all hover:scale-105"
+        />
       </div>
 
-      <div className="w-full max-w-4xl flex justify-between items-center mb-8 z-10 px-2">
-        <button
-          onClick={handlePrev}
-          disabled={activeIndex === 0}
-          className={`p-4 rounded-full transition-all active:scale-90 ${activeIndex === 0 ? 'opacity-0 pointer-events-none' : 'bg-slate-50 hover:bg-slate-100 text-slate-400'}`}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M15 19l-7-7 7-7" /></svg>
-        </button>
-
-        <div className="flex flex-col items-center">
-          <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.6em] animate-pulse">
-            {activeIndex === allRaffles.length - 1 ? 'FIN DEL HISTORIAL' : 'DESLIZA EL LIBRO'}
-          </span>
-          <div className="h-1 w-16 bg-slate-100 rounded-full mt-2 overflow-hidden">
-            <div className="h-full bg-slate-300 transition-all duration-500" style={{ width: `${((activeIndex + 1) / allRaffles.length) * 100}%` }} />
-          </div>
-        </div>
-
-        <button
-          onClick={handleNext}
-          disabled={activeIndex === allRaffles.length - 1}
-          className={`p-4 rounded-full transition-all active:scale-90 ${activeIndex === allRaffles.length - 1 ? 'opacity-0 pointer-events-none' : 'bg-slate-50 hover:bg-slate-100 text-slate-400'}`}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M9 5l7 7-7 7" /></svg>
-        </button>
-      </div>
-
+      {/* 🎯 RAFFLE CAROUSEL */}
       <div
         className={`relative w-full max-w-4xl h-[680px] md:h-[780px] perspective-2000 cursor-grab ${isDragging ? 'cursor-grabbing' : ''}`}
         onMouseDown={(e) => onStart(e.clientX)}
@@ -242,14 +206,14 @@ const Home: React.FC = () => {
               key={raffle.id}
               raffle={raffle}
               position={pos}
-              // Fixed: Cannot find name 'r'. Replaced 'r' with 'raffle'.
               isPast={raffle.status !== RaffleStatus.ACTIVA || (raffle.total_tickets - (raffle.sold_tickets || 0)) < 3}
             />
           );
         })}
       </div>
 
-      <div className="mt-10 flex gap-2">
+      {/* 🎯 INDICATORS */}
+      <div className="mt-10 flex gap-2 z-10">
         {allRaffles.map((_, i) => (
           <div key={i} className={`h-1 rounded-full transition-all duration-500 ${i === activeIndex ? 'w-10 bg-slate-900' : 'w-2 bg-slate-100'}`} />
         ))}

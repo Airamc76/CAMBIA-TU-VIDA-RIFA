@@ -21,7 +21,7 @@ export const Header: React.FC = () => {
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group" onClick={closeMobileMenu}>
             <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shadow-blue-200 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              <img src="/logo_full.jpg" alt="Logo" className="w-full h-full object-cover" />
+              <img src="/brand_logo_final.jpg" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <span className="font-black text-2xl tracking-tighter text-slate-900">
               Cambiatuvida<span className="text-blue-600">ConDavid</span>
@@ -179,11 +179,13 @@ export const Footer: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-12">
           <div className="flex flex-col items-center md:items-start gap-5">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
-                <img src="/logo_full.jpg" alt="Logo" className="w-full h-full object-cover" />
+            <Link to="/" className="flex flex-col md:flex-row items-center gap-4">
+              <div className="w-28 h-28 md:w-16 md:h-16 overflow-hidden">
+                <img src="/brand_logo_final.jpg" alt="Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="font-black text-xl tracking-tighter text-slate-900">Cambiatuvida<span className="text-blue-600">ConDavid</span></span>
+              <span className="font-black text-2xl md:text-xl tracking-tighter text-slate-900 text-center md:text-left">
+                Cambiatuvida<span className="text-blue-600">ConDavid</span>
+              </span>
             </Link>
             <p className="text-slate-400 text-sm max-w-xs text-center md:text-left font-bold leading-relaxed">
               La plataforma definitiva para sorteos seguros, transparentes y emocionantes.
