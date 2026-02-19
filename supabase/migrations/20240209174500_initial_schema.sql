@@ -61,8 +61,21 @@ create policy "Purchase requests are viewable by own user or creators." on publi
 
 -- Storage bucket 'comprobantes' (needs to be created via API or SQL if extensions allowed, usually via dashboard is safer, but here is SQL attempt)
 insert into storage.buckets (id, name, public) values ('comprobantes', 'comprobantes', true) on conflict do nothing;
-create policy "Public upload" on storage.objects for insert with check (bucket_id = 'comprobantes');
-create policy "Public view" on storage.objects for select using (bucket_id = 'comprobantes');
+-- Fix storage policy conflict
+-- This migration handles the case where the policy already exists
+
+DO $$
+BEGIN
+    -- Drop existing policies if they exist
+    DROP POLICY IF EXISTS "Public upload" ON storage.objects;
+    DROP POLICY IF EXISTS "Public view" ON storage.objects;
+    
+    -- Recreate the policies
+    CREATE POLICY "Public upload" ON storage.objects
+    FOR INSERT WITH CHECK (bucket_id = 'comprobantes');
+    CREATE POLICY "Public view" ON storage.objects
+    FOR SELECT USING (bucket_id = 'comprobantes');
+END $$;
 
 -- Function get_my_tickets
 create or replace function public.get_my_tickets(p_dni text, p_email text)
