@@ -165,10 +165,10 @@ export const dbService = {
     console.log(`🔍 RPC [${status || 'all'}] response:`, { dataLength: rpcData?.length, error });
 
     if (error) {
-      // 🚨 FIX "ZOMBIE SESSION": Si el servidor dice que no estamos autorizados (403/401)
-      // siendo que el cliente cree que sí, limpiamos todo para forzar re-login.
-      if (error.status === 403 || error.status === 401 || error.message?.includes('JWT')) {
-        console.warn("🔒 Sesión inválida detectada (403/401). Limpiando credenciales...");
+      // 🚨 FIX "ZOMBIE SESSION"
+      const status = (error as any).status;
+      if (status === 403 || status === 401 || error.message?.includes('JWT')) {
+        console.warn("🔒 Sesión inválida detectada (403/401). Limpiando...");
         supabase.auth.signOut().then(() => {
           window.location.href = '/pagos';
         });
