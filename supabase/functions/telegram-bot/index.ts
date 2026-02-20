@@ -43,7 +43,7 @@ serve(async (req) => {
                     console.error("Error linking chat_id:", error);
                     await sendTelegramMessage(chatId, "❌ Hubo un error al vincular tus tickets. Por favor intenta de nuevo.");
                 } else {
-                    await sendTelegramMessage(chatId, "✅ ¡Vinculado con éxito! Recibirás tus tickets por aquí en cuanto el administrador apruebe tu pago.");
+                    await sendTelegramMessage(chatId, "✅ ¡Vinculado con éxito! Recibirás tus tickets por aquí en cuanto el administrador apruebe tu pago.\n\n🔔 *Funciones:* \n• Te avisaremos cuando tus tickets sean aprobados o si hay algún problema.\n• Puedes escribir /estado en cualquier momento para ver el estatus de tus reportes.");
                     console.log(`Linked chatId ${chatId} to purchase ${purchaseId}`);
                 }
             } else {
