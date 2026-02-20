@@ -20,6 +20,11 @@ jobs:
         with:
           version: latest
 
+      - name: Debug Info
+        run: |
+          ls -R
+          supabase --version
+
       - name: Deploy Edge Functions
         run: |
           supabase functions deploy telegram-bot --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
