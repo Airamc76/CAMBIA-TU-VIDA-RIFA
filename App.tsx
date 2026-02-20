@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, createContext, useContext, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header, Footer } from './components/Layout';
+import FloatingSupport from './components/FloatingSupport';
 import { Raffle, AdminRole } from './types';
 import { dbService } from './services/dbService';
 import { supabase } from './lib/supabase';
@@ -152,6 +153,7 @@ const App: React.FC = () => {
           </main>
           <Footer />
         </div>
+        <FloatingSupport />
       </Router>
     </RaffleContext.Provider>
   );

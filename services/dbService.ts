@@ -447,5 +447,32 @@ export const dbService = {
 
     if (error) throw error;
     return data && data.length > 0 ? data[0] : null;
+  },
+
+  async getPurchaseById(id: string) {
+    const { data, error } = await supabase
+      .from('purchase_requests')
+      .select('*, raffles:raffle_id(title)')
+      .eq('id', id)
+      .single();
+
+    if (error) return null;
+
+    return {
+      id: data.id,
+      user: data.full_name || 'Desconocido',
+      dni: data.national_id || '',
+      whatsapp: data.whatsapp || '',
+      email: data.email || '',
+      raffle: (data.raffles as any)?.title || 'Sin Título',
+      raffleId: data.raffle_id,
+      amount: data.amount?.toString() || '0',
+      ref: data.reference || '',
+      date: new Date(data.created_at).toLocaleDateString(),
+      ticketsCount: data.ticket_qty || 0,
+      status: data.status === 'approved' ? 'aprobado' : data.status === 'rejected' ? 'rechazado' : 'pendiente',
+      evidence_url: data.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${data.receipt_path}` : null,
+      assignedNumbers: data.assigned_numbers || []
+    };
   }
 };
