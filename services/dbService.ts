@@ -85,7 +85,7 @@ export const dbService = {
    * createPublicPurchase: Llama a la Edge Function pública para procesar la compra.
    * ✅ Snippet fetch definitivo.
    */
-  async createPublicPurchase(data: any) {
+  async createPublicPurchase(data: any): Promise<string> {
     // 1. Validar datos mínimos
     if (!data.buyerName || !data.buyerDni || !data.amount) {
       throw new Error("Faltan datos obligatorios para la compra.");
@@ -299,10 +299,10 @@ export const dbService = {
     const { error } = await supabase.rpc(rpcName, { p_request_id: id });
     if (error) handleDBError(error, `actualizar estado a ${status}`);
 
-    // Si se aprobó, disparar el correo de tickets (Edge Function)
-    if (status === 'approved') {
+    // Si se aprobó o rechazó, disparar notificaciones (Edge Function)
+    if (status === 'approved' || status === 'rejected') {
       try {
-        console.log("🚀 Disparando Edge Function 'send-tickets'...");
+        console.log(`🚀 Disparando Edge Function 'send-tickets' (${status})...`);
 
         // 1. Obtener datos frescos de la compra para enviar al webhook
         const { data: purchase, error: fetchError } = await supabase
@@ -312,7 +312,7 @@ export const dbService = {
           .single();
 
         if (fetchError || !purchase) {
-          console.warn("⚠️ No se pudo obtener la compra para enviar email:", fetchError);
+          console.warn("⚠️ No se pudo obtener la compra para enviar notificación:", fetchError);
         } else {
           // 2. Invocar función
           const { data: funcData, error: funcError } = await supabase.functions.invoke('send-tickets', {
@@ -320,13 +320,20 @@ export const dbService = {
           });
 
           if (funcError) {
-            console.error("❌ Error al enviar tickets por email:", funcError);
+            console.error("❌ Error al invocar Edge Function 'send-tickets':", funcError);
+            // Si es aprobación, lanzamos el error para que el admin sepa. 
+            // Si es rechazo, es menos crítico pero igual lo registramos.
+            if (status === 'approved') {
+              const errorMsg = funcError.message || JSON.stringify(funcError);
+              throw new Error(`Edge Function Error: ${errorMsg}`);
+            }
           } else {
-            console.log("✅ Email enviado correctamente:", funcData);
+            console.log("✅ Edge Function Result:", funcData);
           }
         }
       } catch (err) {
         console.error("❌ Error inesperado al invocar send-tickets:", err);
+        if (status === 'approved') throw err; // Solo detenemos el proceso si es aprobación
       }
     }
     return true;
@@ -401,7 +408,7 @@ export const dbService = {
 
   async saveRaffle(raffle: Raffle) {
     const { data, error } = await supabase.rpc('save_raffle', { p_raffle: raffle });
-    if (error) throw error;
+    if (error) handleDBError(error, 'saveRaffle (RPC)');
     return data;
   },
 

@@ -11,6 +11,7 @@ const Purchase: React.FC = () => {
   const { raffles, refreshData } = useRaffles();
   const raffle = raffles.find(r => r.id === id);
 
+  const [purchaseId, setPurchaseId] = useState<string | null>(null);
   const [form, setForm] = useState({
     dni: '',
     name: '',
@@ -53,10 +54,10 @@ const Purchase: React.FC = () => {
     setIsSubmitting(true);
     try {
       // 1. Subir evidencia
-      const receiptPath = await dbService.uploadEvidence(form.file, raffle.id, form.reference);
+      const receiptPath = await dbService.uploadEvidence(form.file!, raffle.id, form.reference);
 
       // 2. Crear solicitud de compra via Edge Function
-      await dbService.createPublicPurchase({
+      const pk = await dbService.createPublicPurchase({
         raffleId: raffle.id,
         ticketCount: form.count,
         amount: raffle.ticket_price * form.count,
@@ -69,6 +70,7 @@ const Purchase: React.FC = () => {
         receiptPath: receiptPath
       });
 
+      setPurchaseId(pk);
       setIsSuccess(true);
       await refreshData();
     } catch (err: any) {
@@ -94,12 +96,31 @@ const Purchase: React.FC = () => {
           <div className="space-y-4">
             <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">¡Reporte Enviado!</h2>
             <p className="text-slate-500 font-bold max-w-sm mx-auto leading-relaxed">
-              Hemos recibido tu comprobante. Nuestro staff validará el pago en las próximas horas y tus números aparecerán en la sección de consulta.
+              Hemos recibido tu comprobante. Nuestro staff validará el pago en las próximas horas.
             </p>
           </div>
+
+          <div className="bg-blue-50 p-8 rounded-[2.5rem] border border-blue-100 space-y-4">
+            <h3 className="text-blue-900 font-black text-sm uppercase tracking-widest">¿Quieres recibir tus tickets por Telegram?</h3>
+            <p className="text-xs text-blue-700 font-bold mb-4">Haz clic abajo para vincular tu compra con nuestro Bot y recibir notificaciones automáticas.</p>
+            <Button
+              onClick={() => window.open(`https://t.me/CambiaTuvidaConDavidticketsbot?start=${purchaseId}`, '_blank')}
+              fullWidth
+              variant="blue"
+              className="py-4 bg-sky-500 hover:bg-sky-600 flex items-center justify-center gap-3"
+            >
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.46-.01-1.33-.26-1.98-.48-.8-.27-1.43-.42-1.38-.89.03-.25.38-.51 1.07-.78 4.21-1.83 7.02-3.04 8.43-3.63 4.02-1.68 4.85-1.97 5.39-1.98.12 0 .39.03.56.17.15.13.2.31.22.44.02.08.02.16.01.21z" /></svg>
+              🛎️ RECIBIR POR TELEGRAM
+            </Button>
+            <p className="text-[10px] text-blue-400 font-bold mt-2">
+              Si no tienes Telegram no te preocupes, los tickets también llegarán a tu correo electrónico.
+              Si tienes alguna duda, ¡háblale a nuestro soporte por WhatsApp!
+            </p>
+          </div>
+
           <div className="flex flex-col gap-4">
-            <Button onClick={() => navigate('/consultar')} fullWidth variant="blue" className="py-6 text-xl">Consultar mis Tickets</Button>
-            <Button onClick={() => navigate('/')} fullWidth variant="ghost" className="py-4 font-black uppercase tracking-widest text-xs">Volver al Inicio</Button>
+            <Button onClick={() => navigate('/consultar')} fullWidth variant="ghost" className="py-2 text-slate-400 font-black">Ya tengo mis números, ir a consulta</Button>
+            <Button onClick={() => navigate('/')} fullWidth variant="ghost" className="py-2 font-black uppercase tracking-widest text-[10px]">Volver al Inicio</Button>
           </div>
         </div>
       </div>
@@ -295,12 +316,12 @@ const Purchase: React.FC = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <h4 className="font-black text-slate-900 uppercase tracking-widest text-[10px]">Términos y Condiciones</h4>
             <div className="max-h-60 overflow-y-auto bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
               <p className="text-xs text-slate-500 font-bold italic mb-4">Por favor, lee y acepta nuestros términos para participar.</p>
-              
+
               {[
                 "Los números disponibles para la compra en cada sorteo se especificarán en la página de detalles correspondientes a cada sorteo.",
                 "Debes verificar tu compra antes de confirmarla haciendo clic en \"Comprar\". No realizamos reembolsos por errores cometidos por el usuario.",
