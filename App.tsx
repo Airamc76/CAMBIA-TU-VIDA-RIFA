@@ -86,8 +86,13 @@ const App: React.FC = () => {
               setPurchases(dbRequests as PurchaseData[] || []);
             }
           }
-        } catch (err) {
+        } catch (err: any) {
           console.warn("Could not fetch role in refreshData:", err);
+          // Si es un error de autorización (Zombie Session), limpiamos
+          if (err?.status === 403 || err?.status === 401) {
+            await supabase.auth.signOut();
+            setUserRole(null);
+          }
         }
       }
     } catch (error: any) {

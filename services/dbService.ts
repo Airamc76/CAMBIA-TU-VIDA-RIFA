@@ -164,7 +164,17 @@ export const dbService = {
 
     console.log(`🔍 RPC [${status || 'all'}] response:`, { dataLength: rpcData?.length, error });
 
-    if (error) handleDBError(error, 'listar solicitudes (RPC)');
+    if (error) {
+      // 🚨 FIX "ZOMBIE SESSION": Si el servidor dice que no estamos autorizados (403/401)
+      // siendo que el cliente cree que sí, limpiamos todo para forzar re-login.
+      if (error.status === 403 || error.status === 401 || error.message?.includes('JWT')) {
+        console.warn("🔒 Sesión inválida detectada (403/401). Limpiando credenciales...");
+        supabase.auth.signOut().then(() => {
+          window.location.href = '/pagos';
+        });
+      }
+      handleDBError(error, 'listar solicitudes (RPC)');
+    }
 
     // Al retornar JSON desde Postgres, 'rpcData' YA ES el array.
     // A veces Supabase lo envuelve, pero con returns json suele ser directo.
