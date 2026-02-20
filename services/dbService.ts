@@ -31,14 +31,18 @@ export const dbService = {
     });
     if (authError) throw authError;
 
-    const { data: admin } = await supabase.from('admins').select('role').eq('user_id', authData.user.id).single();
 
-    if (!admin) {
+
+    // Fix: Use RPC to get role
+    const { data: role, error: roleError } = await supabase.rpc('get_my_role');
+
+    // get_my_role returns text, or null if no role
+    if (roleError || !role) {
       await supabase.auth.signOut();
       throw new Error('No autorizado.');
     }
 
-    return { userId: authData.user.id, email: authData.user.email, role: admin.role as AdminRole };
+    return { userId: authData.user.id, email: authData.user.email, role: role as AdminRole };
   },
 
   async signOut() { await supabase.auth.signOut(); },
@@ -152,31 +156,36 @@ export const dbService = {
 
   // --- 4. ADMIN ---
   async getPurchaseRequests(status?: 'pending' | 'approved' | 'rejected') {
-    let query = supabase
-      .from('purchase_requests')
-      .select('*, raffles:raffle_id(title)')
-      .order('created_at', { ascending: false });
+    // Usamos la RPC "full" para traer los datos ya unidos con el título de la rifa.
+    // Esto evita problemas de permisos RLS en la tabla 'raffles' al hacer join desde el cliente.
+    const { data: rpcData, error } = await supabase.rpc('get_admin_requests_full', {
+      p_status: status || null
+    });
 
-    if (status) {
-      query = query.eq('status', status);
+    console.log(`🔍 RPC [${status || 'all'}] response:`, { dataLength: rpcData?.length, error });
+
+    if (error) handleDBError(error, 'listar solicitudes (RPC)');
+
+    // Al retornar JSON desde Postgres, 'rpcData' YA ES el array.
+    // A veces Supabase lo envuelve, pero con returns json suele ser directo.
+    const data = rpcData || [];
+
+    if (data.length === 0) {
+      console.warn("⚠️ RPC devolvió 0 registros.");
     }
 
-    const { data, error } = await query;
-
-    if (error) handleDBError(error, 'listar solicitudes');
-
-    return (data || []).map(p => ({
+    return data.map((p: any) => ({
       id: p.id,
-      user: p.full_name,
-      dni: p.national_id,
-      whatsapp: p.whatsapp,
-      email: p.email,
-      raffle: (p.raffles as any)?.title,
+      user: p.full_name || 'Desconocido',
+      dni: p.national_id || '',
+      whatsapp: p.whatsapp || '',
+      email: p.email || '',
+      raffle: p.raffle_title || 'Sin Título',
       raffleId: p.raffle_id,
-      amount: p.amount?.toString(),
-      ref: p.reference,
+      amount: p.amount?.toString() || '0',
+      ref: p.reference || '', // Fix: Ensure reference is never null to avoid .toLowerCase() crash
       date: new Date(p.created_at).toLocaleDateString(),
-      ticketsCount: p.ticket_qty,
+      ticketsCount: p.ticket_qty || 0,
       status: p.status === 'approved' ? 'aprobado' : p.status === 'rejected' ? 'rechazado' : 'pendiente',
       evidence_url: p.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${p.receipt_path}` : null
     }));
@@ -288,10 +297,37 @@ export const dbService = {
 
     // Llamar a RPC correspondiente para manejar la transacción de tickets
     const { error } = await supabase.rpc(rpcName, { p_request_id: id });
+    if (error) handleDBError(error, `actualizar estado a ${status}`);
 
-    if (error) {
-      console.error(`Error en ${rpcName}:`, error);
-      throw error;
+    // Si se aprobó, disparar el correo de tickets (Edge Function)
+    if (status === 'approved') {
+      try {
+        console.log("🚀 Disparando Edge Function 'send-tickets'...");
+
+        // 1. Obtener datos frescos de la compra para enviar al webhook
+        const { data: purchase, error: fetchError } = await supabase
+          .from('purchase_requests')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (fetchError || !purchase) {
+          console.warn("⚠️ No se pudo obtener la compra para enviar email:", fetchError);
+        } else {
+          // 2. Invocar función
+          const { data: funcData, error: funcError } = await supabase.functions.invoke('send-tickets', {
+            body: { record: purchase }
+          });
+
+          if (funcError) {
+            console.error("❌ Error al enviar tickets por email:", funcError);
+          } else {
+            console.log("✅ Email enviado correctamente:", funcData);
+          }
+        }
+      } catch (err) {
+        console.error("❌ Error inesperado al invocar send-tickets:", err);
+      }
     }
     return true;
   },

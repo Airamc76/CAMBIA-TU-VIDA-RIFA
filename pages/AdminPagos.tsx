@@ -319,6 +319,9 @@ const AdminPagos: React.FC = () => {
             Staff: <span className="text-slate-900 border-b-2 border-blue-200">{userRole?.toUpperCase()}</span>
             <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
             {stats.pending} Por Conciliar
+            <span className="ml-4 text-[9px] text-red-400">
+              Debug: P{purchases.length} / S{stats.pending}
+            </span>
           </p>
         </div>
         <div className="flex gap-4 w-full md:w-auto">
@@ -493,8 +496,8 @@ const AdminPagos: React.FC = () => {
                           <div
                             key={num}
                             className={`relative flex flex-col items-center justify-center rounded-2xl px-4 py-3 transition-all duration-300 ${isSearched
-                                ? 'bg-yellow-400 text-slate-900 shadow-xl shadow-yellow-400/40 scale-110 ring-2 ring-white/60'
-                                : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'
+                              ? 'bg-yellow-400 text-slate-900 shadow-xl shadow-yellow-400/40 scale-110 ring-2 ring-white/60'
+                              : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'
                               }`}
                           >
                             {isSearched && (

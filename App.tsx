@@ -74,18 +74,19 @@ const App: React.FC = () => {
 
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        const { data: admin } = await supabase
-          .from('admins')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single();
-
-        if (admin) {
-          setUserRole(admin.role as AdminRole);
-          if (['pagos', 'superadmin'].includes(admin.role)) {
-            const dbRequests = await dbService.getPendingPurchaseRequests();
-            setPurchases(dbRequests as PurchaseData[] || []);
+        // Fix: Use RPC to get role instead of direct table query (avoids 406 error)
+        try {
+          const role = await dbService.getMyRole();
+          if (role) {
+            setUserRole(role);
+            // Si tiene rol, cargamos los pendientes
+            if (['pagos', 'superadmin'].includes(role)) {
+              const dbRequests = await dbService.getPendingPurchaseRequests();
+              setPurchases(dbRequests as PurchaseData[] || []);
+            }
           }
+        } catch (err) {
+          console.warn("Could not fetch role in refreshData:", err);
         }
       }
     } catch (error: any) {
