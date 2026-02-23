@@ -25,6 +25,7 @@ const Purchase: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -240,7 +241,15 @@ const Purchase: React.FC = () => {
                 </div>
                 <div className="group cursor-pointer border-t border-slate-50 pt-3">
                   <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Banco</span>
-                  <span className="font-black text-slate-900 text-[10px] block uppercase tracking-tight">0169 R4 BANCO MICRO FINANCIERO</span>
+                  <div className="flex items-center gap-4">
+                    <img
+                      src="/bank_logo_r4.png"
+                      alt="Logo R4"
+                      onClick={() => setIsLogoModalOpen(true)}
+                      className="w-14 h-14 object-contain rounded-xl bg-white p-1.5 border border-slate-100 shadow-md cursor-zoom-in hover:scale-105 transition-transform"
+                    />
+                    <span className="font-black text-slate-900 text-[10px] block uppercase tracking-tight">0169 R4 BANCO MICRO FINANCIERO</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -341,6 +350,27 @@ const Purchase: React.FC = () => {
               ))}
             </div>
           </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={isLogoModalOpen}
+        onClose={() => setIsLogoModalOpen(false)}
+        title="Datos de Banco R4"
+      >
+        <div className="flex flex-col items-center justify-center p-4 space-y-6">
+          <img
+            src="/bank_logo_r4.png"
+            alt="Logo R4 Grande"
+            className="w-full max-w-[280px] aspect-square object-contain bg-white rounded-3xl p-6 shadow-2xl border border-slate-100"
+          />
+          <div className="text-center space-y-2">
+            <h4 className="font-black text-slate-900 uppercase tracking-widest text-sm">Banco Microfinanciero R4</h4>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">0169 - Microfinanciero</p>
+          </div>
+          <Button variant="blue" onClick={() => setIsLogoModalOpen(false)} fullWidth className="font-black">
+            Cerrar Vista
+          </Button>
         </div>
       </Modal>
     </div>
