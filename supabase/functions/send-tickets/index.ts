@@ -134,6 +134,15 @@ _Si no tienes Telegram no te preocupes, tus tickets también llegaron a tu corre
 
         // --- LÓGICA PARA COMPRA RECHAZADA ---
         if (record.status === "rejected") {
+            // 0. Obtener info de la rifa
+            const { data: raffle, error: rErr } = await supabase
+                .from("raffles")
+                .select("title")
+                .eq("id", record.raffle_id)
+                .single();
+
+            const raffleTitle = raffle?.title || "Sorteo";
+
             // 1. Enviar EMAIL de rechazo
             if (RESEND_API_KEY) {
                 const whatsappLink = "https://api.whatsapp.com/send/?phone=5804140170156&text=Hola, mi reporte de pago fue rechazado. ID: " + record.id;
@@ -147,21 +156,25 @@ _Si no tienes Telegram no te preocupes, tus tickets también llegaron a tu corre
                         body: JSON.stringify({
                             from: RESEND_FROM_EMAIL,
                             to: [record.email],
-                            subject: `❌ Reporte de Pago Rechazado - ID: ${record.id}`,
+                            subject: `❌ Reporte de Pago Rechazado - ${raffleTitle}`,
                             html: `
                         <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
                           <h1 style="color: #dc2626;">Reporte de Pago Rechazado</h1>
                           <p>Hola <strong>${record.full_name}</strong>,</p>
-                          <p>Lo sentimos, pero tu reporte de pago no ha podido ser validado por el administrador.</p>
+                          <p>Lo sentimos, pero tu reporte de pago para el sorteo <strong>${raffleTitle}</strong> no ha podido ser validado por el administrador.</p>
                           
+                          <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #e2e8f0;">
+                            <p style="margin: 0; font-size: 14px; color: #64748b;"><strong>ID de Pago:</strong> ${record.id}</p>
+                          </div>
+
                           <p>Para conocer el motivo o resolver cualquier inconveniente, por favor contacta a nuestro soporte vía WhatsApp haciendo clic en el siguiente botón:</p>
                           
                           <div style="text-align: center; margin: 30px 0;">
                             <a href="${whatsappLink}" style="background-color: #25d366; color: white; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-weight: bold; display: inline-block;">Contactar Soporte por WhatsApp</a>
                           </div>
 
-                          <div style="text-align: center; margin: 30px 0; padding: 20px; background: #f8fafc; border-radius: 15px; color: #64748b;">
-                            <p style="margin: 0; font-size: 14px;">Estamos aquí para ayudarte a completar tu participación.</p>
+                          <div style="text-align: center; margin: 30px 0; padding: 20px; background: #fff5f5; border-radius: 15px; color: #c53030;">
+                            <p style="margin: 0; font-size: 14px;"><strong>Nota:</strong> Entrega el ID de pago al administrador para que pueda ubicar tu reporte rápidamente.</p>
                           </div>
                         </div>
                       `,
@@ -177,7 +190,10 @@ _Si no tienes Telegram no te preocupes, tus tickets también llegaron a tu corre
                 const rejectionMsg = `
 ❌ *Reporte de Pago Rechazado*
 
-Hola *${record.full_name}*, lo sentimos pero tu reporte de pago no ha podido ser validado por el administrador.
+Hola *${record.full_name}*, lo sentimos pero tu reporte de pago para el sorteo *${raffleTitle}* no ha podido ser validado por el administrador.
+
+*ID de Pago:* \`${record.id}\`
+_(Entrega este ID al administrador para ubicar tu pago)_
 
 Para conocer el motivo o resolver cualquier inconveniente, por favor contacta a nuestro soporte vía WhatsApp:
 
