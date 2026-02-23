@@ -40,6 +40,7 @@ const AdminPagos: React.FC = () => {
   // --- NUEVAS ESTADO DASHBOARD ---
   const [activeTab, setActiveTab] = useState<'pendientes' | 'historial'>('pendientes');
   const [statusFilter, setStatusFilter] = useState<'todos' | 'pendiente' | 'aprobado' | 'rechazado'>('todos');
+  const [raffleFilter, setRaffleFilter] = useState<string>('');
   const [stats, setStats] = useState({ pending: 0, approvedToday: 0, rejectedToday: 0, totalAmountToday: 0 });
   const [historyPurchases, setHistoryPurchases] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -724,6 +725,24 @@ const AdminPagos: React.FC = () => {
           >
             Rechazados
           </button>
+
+          <div className="w-px bg-slate-200 mx-2 hidden md:block"></div>
+
+          <div className="relative flex-1 md:flex-none">
+            <select
+              value={raffleFilter}
+              onChange={(e) => setRaffleFilter(e.target.value)}
+              className="w-full md:w-48 appearance-none bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+            >
+              <option value="">Todas las rifas</option>
+              {raffles.map(r => (
+                <option key={r.id} value={r.id}>{r.title}</option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M19 9l-7 7-7-7" /></svg>
+            </div>
+          </div>
         </div>
 
         <div className="relative w-full md:max-w-md group">
@@ -763,11 +782,13 @@ const AdminPagos: React.FC = () => {
                 {(activeTab === 'pendientes' && statusFilter === 'todos' ? purchases :
                   statusFilter === 'todos' ? historyPurchases :
                     [...purchases, ...historyPurchases].filter(p => p.status === statusFilter))
-                  .filter(p =>
-                    p.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    p.dni.includes(searchTerm) ||
-                    p.ref.toLowerCase().includes(searchTerm.toLowerCase())
-                  )
+                  .filter(p => {
+                    const matchesSearch = p.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      p.dni.includes(searchTerm) ||
+                      p.ref.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesRaffle = raffleFilter === '' || p.raffleId === raffleFilter;
+                    return matchesSearch && matchesRaffle;
+                  })
                   .map(p => (
                     <tr key={p.id} className="hover:bg-blue-50/30 transition-colors group">
                       <td className="px-10 py-8">
