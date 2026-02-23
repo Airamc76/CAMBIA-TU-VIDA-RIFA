@@ -39,6 +39,7 @@ const AdminPagos: React.FC = () => {
 
   // --- NUEVAS ESTADO DASHBOARD ---
   const [activeTab, setActiveTab] = useState<'pendientes' | 'historial'>('pendientes');
+  const [statusFilter, setStatusFilter] = useState<'todos' | 'pendiente' | 'aprobado' | 'rechazado'>('todos');
   const [stats, setStats] = useState({ pending: 0, approvedToday: 0, rejectedToday: 0, totalAmountToday: 0 });
   const [historyPurchases, setHistoryPurchases] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -689,18 +690,39 @@ const AdminPagos: React.FC = () => {
 
       {/* 🔍 BARRA DE ACCIÓN: TABS + BUSCADOR */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-900/5 p-4 rounded-[2.5rem] border border-slate-100">
-        <div className="flex bg-white/50 backdrop-blur-md p-1.5 rounded-3xl border border-white shadow-inner w-full md:w-auto">
+        <div className="flex flex-wrap bg-white/50 backdrop-blur-md p-1.5 rounded-3xl border border-white shadow-inner w-full md:w-auto gap-2">
           <button
-            onClick={() => setActiveTab('pendientes')}
-            className={`flex-1 md:flex-none px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === 'pendientes' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+            onClick={() => { setActiveTab('pendientes'); setStatusFilter('todos'); }}
+            className={`flex-1 md:flex-none px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === 'pendientes' && statusFilter === 'todos' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
           >
             Pendientes ({stats.pending})
           </button>
           <button
-            onClick={() => setActiveTab('historial')}
-            className={`flex-1 md:flex-none px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === 'historial' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+            onClick={() => { setActiveTab('historial'); setStatusFilter('todos'); }}
+            className={`flex-1 md:flex-none px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === 'historial' && statusFilter === 'todos' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
           >
             Historial ({historyPurchases.length})
+          </button>
+
+          <div className="w-px bg-slate-200 mx-2 hidden md:block"></div>
+
+          <button
+            onClick={() => setStatusFilter('pendiente')}
+            className={`flex-1 md:flex-none px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${statusFilter === 'pendiente' ? 'bg-amber-500 text-white shadow-lg' : 'text-amber-500/50 hover:text-amber-500 bg-amber-50/50'}`}
+          >
+            Pendientes
+          </button>
+          <button
+            onClick={() => setStatusFilter('aprobado')}
+            className={`flex-1 md:flex-none px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${statusFilter === 'aprobado' ? 'bg-green-600 text-white shadow-lg' : 'text-green-600/50 hover:text-green-600 bg-green-50/50'}`}
+          >
+            Aprobados
+          </button>
+          <button
+            onClick={() => setStatusFilter('rechazado')}
+            className={`flex-1 md:flex-none px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${statusFilter === 'rechazado' ? 'bg-rose-600 text-white shadow-lg' : 'text-rose-600/50 hover:text-rose-600 bg-rose-50/50'}`}
+          >
+            Rechazados
           </button>
         </div>
 
@@ -738,7 +760,9 @@ const AdminPagos: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {(activeTab === 'pendientes' ? purchases : historyPurchases)
+                {(activeTab === 'pendientes' && statusFilter === 'todos' ? purchases :
+                  statusFilter === 'todos' ? historyPurchases :
+                    [...purchases, ...historyPurchases].filter(p => p.status === statusFilter))
                   .filter(p =>
                     p.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     p.dni.includes(searchTerm) ||
