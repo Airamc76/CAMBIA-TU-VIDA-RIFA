@@ -134,6 +134,44 @@ _Si no tienes Telegram no te preocupes, tus tickets también llegaron a tu corre
 
         // --- LÓGICA PARA COMPRA RECHAZADA ---
         if (record.status === "rejected") {
+            // 1. Enviar EMAIL de rechazo
+            if (RESEND_API_KEY) {
+                const whatsappLink = "https://api.whatsapp.com/send/?phone=5804140170156&text=Hola, mi reporte de pago fue rechazado. ID: " + record.id;
+                try {
+                    const res = await fetch("https://api.resend.com/emails", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${RESEND_API_KEY}`,
+                        },
+                        body: JSON.stringify({
+                            from: RESEND_FROM_EMAIL,
+                            to: [record.email],
+                            subject: `❌ Reporte de Pago Rechazado - ID: ${record.id}`,
+                            html: `
+                        <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+                          <h1 style="color: #dc2626;">Reporte de Pago Rechazado</h1>
+                          <p>Hola <strong>${record.full_name}</strong>,</p>
+                          <p>Lo sentimos, pero tu reporte de pago no ha podido ser validado por el administrador.</p>
+                          
+                          <p>Para conocer el motivo o resolver cualquier inconveniente, por favor contacta a nuestro soporte vía WhatsApp haciendo clic en el siguiente botón:</p>
+                          
+                          <div style="text-align: center; margin: 30px 0;">
+                            <a href="${whatsappLink}" style="background-color: #25d366; color: white; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-weight: bold; display: inline-block;">Contactar Soporte por WhatsApp</a>
+                          </div>
+
+                          <div style="text-align: center; margin: 30px 0; padding: 20px; background: #f8fafc; border-radius: 15px; color: #64748b;">
+                            <p style="margin: 0; font-size: 14px;">Estamos aquí para ayudarte a completar tu participación.</p>
+                          </div>
+                        </div>
+                      `,
+                        }),
+                    });
+                    results.email = await res.json();
+                } catch (e) { results.email = { error: e.message }; }
+            }
+
+            // 2. Enviar TELEGRAM de rechazo
             if (TELEGRAM_BOT_TOKEN && record.telegram_chat_id) {
                 const whatsappLink = "https://api.whatsapp.com/send/?phone=5804140170156&text=Hola, mi reporte de pago fue rechazado. ID: " + record.id;
                 const rejectionMsg = `
