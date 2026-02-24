@@ -163,23 +163,15 @@ const Home: React.FC = () => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 flex flex-col items-center justify-start py-8 px-4 relative overflow-hidden select-none">
-
-      {/* 🌫️ BACKGROUND IMAGE */}
-      <div className="absolute inset-0 z-0 opacity-40 pointer-events-none overflow-hidden">
-        <img
-          src="/background.jpg"
-          alt="Background Image"
-          className="w-full h-full object-cover transform scale-110"
-        />
-      </div>
+    <div className="min-h-[calc(100vh-80px)] bg-white flex flex-col items-center justify-start py-8 px-4 relative overflow-hidden select-none">
 
       {/* 🏷️ BRAND LOGO (Bottom Left) */}
-      <div className="absolute bottom-8 left-8 z-10 pointer-events-none hidden md:block">
+      <div className="absolute bottom-10 left-10 z-10 hidden md:block group cursor-pointer">
+        <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-2xl scale-95 group-hover:scale-110 group-hover:bg-blue-500/30 transition-all duration-500"></div>
         <img
           src="/brand_logo_v3.png"
           alt="Brand Logo"
-          className="w-80 h-auto transition-all hover:scale-105"
+          className="relative w-56 h-56 object-cover rounded-full border-4 border-white shadow-[0_15px_40px_rgba(0,0,0,0.2)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_25px_50px_rgba(0,0,0,0.3)] group-hover:-translate-y-2"
         />
       </div>
 
