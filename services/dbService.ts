@@ -481,8 +481,20 @@ export const dbService = {
       date: new Date(data.created_at).toLocaleDateString(),
       ticketsCount: data.ticket_qty || 0,
       status: data.status === 'approved' ? 'aprobado' : data.status === 'rejected' ? 'rechazado' : 'pendiente',
-      evidence_url: data.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${data.receipt_path}` : null,
       assignedNumbers: data.assigned_numbers || []
     };
+  },
+
+  async getTopBuyers(raffleId: string) {
+    try {
+      const { data, error } = await supabase.rpc('get_top_buyers', { p_raffle_id: raffleId });
+      if (error) {
+        throw error;
+      }
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching top buyers:', error);
+      return [];
+    }
   }
 };

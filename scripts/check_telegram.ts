@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
-    'https://mcmlelpmqptwwzscymly.supabase.co',
-    'SUPABASE_ANON_KEY' // I'll replace this with the actual key from env if I can, or just check the schema
+    'https://lnhwzzmcmlelpmqptwwz.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuaHd6em1jbWxlbHBtcXB0d3d6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNzcyODAsImV4cCI6MjA4NDc1MzI4MH0.ZhZAlKuZCsT8BFjn_pFPRZQyOl9jWEJjX-gIUg6V6Ss'
 )
 
 async function check() {

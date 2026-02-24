@@ -51,6 +51,31 @@ const AdminPagos: React.FC = () => {
   const [dailyHistory, setDailyHistory] = useState<any[]>([]);
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
 
+  // --- TOP COMPRADORES ---
+  const [showTopBuyers, setShowTopBuyers] = useState(false);
+  const [topRaffleId, setTopRaffleId] = useState('');
+  const [topBuyers, setTopBuyers] = useState<any[]>([]);
+  const [isFetchingTop, setIsFetchingTop] = useState(false);
+
+  useEffect(() => {
+    if (!topRaffleId) {
+      setTopBuyers([]);
+      return;
+    }
+    const fetchTop = async () => {
+      setIsFetchingTop(true);
+      try {
+        const data = await dbService.getTopBuyers(topRaffleId);
+        setTopBuyers(data);
+      } catch (e) {
+        console.error("Error fetching top buyers", e);
+      } finally {
+        setIsFetchingTop(false);
+      }
+    };
+    fetchTop();
+  }, [topRaffleId]);
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -685,6 +710,124 @@ const AdminPagos: React.FC = () => {
                 )}
               </div>
             )}
+          </div>
+        )}
+      </div>
+
+      {/* 🌟 SECCIÓN: TOP 5 COMPRADORES */}
+      <div className="bg-slate-900 p-10 md:p-14 rounded-[4rem] shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none"></div>
+        <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl group-hover:bg-amber-500/20 transition-colors duration-700"></div>
+
+        <div className="relative flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+          <div className="space-y-4 max-w-sm text-white">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+              Ranking
+            </div>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter leading-none">Top 5 Compradores</h2>
+            <p className="text-slate-400 text-sm font-bold leading-relaxed">Descubre quiénes son los mayores inversionistas en cada campaña activa.</p>
+          </div>
+
+          <Button
+            onClick={() => setShowTopBuyers(!showTopBuyers)}
+            variant="ghost"
+            className="rounded-3xl bg-white/10 text-white hover:bg-white/20 border-white/20 px-8 py-4 font-black uppercase text-xs tracking-widest shadow-xl flex items-center gap-3"
+          >
+            {showTopBuyers ? (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 15l7-7 7 7" /></svg>
+                Ocultar Panel
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
+                Ver Ranking
+              </>
+            )}
+          </Button>
+        </div>
+
+        {showTopBuyers && (
+          <div className="relative mt-12 pt-12 border-t border-white/10 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="mb-8">
+              <label className="text-[10px] font-black text-amber-200 uppercase tracking-widest ml-4 block mb-3">Selecciona el Sorteo</label>
+              <div className="relative max-w-md">
+                <select
+                  className="w-full bg-white/5 border-2 border-white/10 rounded-3xl px-8 py-5 text-lg font-bold text-white outline-none focus:border-amber-500 focus:ring-8 focus:ring-amber-500/5 transition-all appearance-none cursor-pointer"
+                  value={topRaffleId}
+                  onChange={e => setTopRaffleId(e.target.value)}
+                >
+                  <option value="" className="bg-slate-900">Elegir campaña...</option>
+                  {raffles.map(r => (
+                    <option key={r.id} value={r.id} className="bg-slate-900">{r.title}</option>
+                  ))}
+                </select>
+                <div className="absolute right-8 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
+            </div>
+
+            {isFetchingTop ? (
+              <div className="py-16 flex flex-col items-center justify-center gap-4">
+                <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-[10px] text-amber-500/60 font-black uppercase tracking-widest animate-pulse">Analizando compras...</p>
+              </div>
+            ) : topRaffleId ? (
+              topBuyers.length > 0 ? (
+                <div className="bg-white/5 rounded-[3rem] border border-white/10 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-white">
+                      <thead className="bg-black/20 text-white/40 text-[9px] font-black uppercase tracking-[0.3em]">
+                        <tr>
+                          <th className="px-8 py-5 w-24 text-center">Rango</th>
+                          <th className="px-8 py-5">Comprador</th>
+                          <th className="px-8 py-5 text-right">Inversión Total</th>
+                          <th className="px-8 py-5 text-center">Tickets</th>
+                          <th className="px-8 py-5 text-center">Compras</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {topBuyers.map((tb, idx) => (
+                          <tr key={idx} className="hover:bg-white/5 transition-colors group">
+                            <td className="px-8 py-6 text-center">
+                              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full font-black text-lg ${tb.rank === 1 ? 'bg-amber-400 text-amber-900 shadow-[0_0_15px_rgba(251,191,36,0.5)]' :
+                                  tb.rank === 2 ? 'bg-slate-300 text-slate-800' :
+                                    tb.rank === 3 ? 'bg-amber-700 text-amber-100' :
+                                      'bg-white/10 text-white/60'
+                                }`}>
+                                #{tb.rank}
+                              </div>
+                            </td>
+                            <td className="px-8 py-6">
+                              <div className="flex flex-col">
+                                <span className="font-black text-xl tracking-tight">{tb.buyer_name || 'Desconocido'}</span>
+                                <span className="text-[9px] text-white/40 font-bold uppercase tracking-wider">C.I: {tb.buyer_id}</span>
+                              </div>
+                            </td>
+                            <td className="px-8 py-6 text-right">
+                              <span className="font-black text-2xl text-amber-400 drop-shadow-sm">{tb.total_amount} BS</span>
+                            </td>
+                            <td className="px-8 py-6 text-center">
+                              <span className="font-black text-lg text-white/80">{tb.tickets_count}</span>
+                            </td>
+                            <td className="px-8 py-6 text-center">
+                              <span className="inline-flex px-3 py-1 bg-white/10 rounded-lg text-xs font-bold text-white/60">{tb.purchases_count}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-white/5 rounded-[3rem] border-2 border-dashed border-white/10 flex flex-col items-center gap-4">
+                  <svg className="w-12 h-12 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <p className="text-white/40 font-black uppercase tracking-widest text-xs">No hay compras aprobadas para esta rifa</p>
+                </div>
+              )
+            ) : null}
           </div>
         )}
       </div>
