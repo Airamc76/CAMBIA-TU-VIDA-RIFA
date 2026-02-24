@@ -8,7 +8,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": "https://cambiatuvidacondavid.com",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -222,10 +222,14 @@ Estamos aquí para ayudarte.
         });
 
     } catch (error: any) {
-        console.error("Function error:", error);
-        return new Response(JSON.stringify({ error: error.message }), {
+        console.error(JSON.stringify({
+            layer: "webhook_send_tickets",
+            error: error.message,
+            stack: error.stack
+        }));
+        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 400,
+            status: 500,
         });
     }
 });

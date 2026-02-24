@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import { ENV } from '../config/env';
 
 // Credenciales oficiales del proyecto CambiatuvidaConDavid
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+export const SUPABASE_URL = ENV.VITE_SUPABASE_URL;
+export const SUPABASE_ANON_KEY = ENV.VITE_SUPABASE_ANON_KEY;
 
 /**
  * CLIENTE ADMIN: Para login de staff y gestión de rifas.
@@ -26,7 +27,7 @@ export const supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
  * CLIENTE ADMIN (SERVICE ROLE): Solo para gestión de usuarios.
  * Requiere VITE_SUPABASE_SERVICE_ROLE_KEY en .env.local
  */
-const SERVICE_ROLE = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const SERVICE_ROLE = ENV.VITE_SUPABASE_SERVICE_ROLE_KEY;
 export const supabaseAdmin = SERVICE_ROLE
   ? createClient(SUPABASE_URL, SERVICE_ROLE, {
     auth: {

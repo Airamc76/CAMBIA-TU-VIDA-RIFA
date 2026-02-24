@@ -6,7 +6,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": "https://cambiatuvidacondavid.com",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -99,10 +99,17 @@ serve(async (req) => {
             console.log("No specific command match.");
         }
 
-        return new Response("ok", { status: 200 });
+        return new Response("ok", { status: 200, headers: corsHeaders });
     } catch (error: any) {
-        console.error("Webhook error:", error);
-        return new Response(JSON.stringify({ error: error.message }), { status: 400 });
+        console.error(JSON.stringify({
+            layer: "webhook",
+            error: error.message,
+            stack: error.stack
+        }));
+        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
     }
 });
 
