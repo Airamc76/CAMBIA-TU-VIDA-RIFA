@@ -1,0 +1,14 @@
+{
+    "p_raffle": {
+        "title": "iphone 17 pro max test",
+        "ticket_price": 1110,
+        "total_tickets": 100,
+        "status": "active",
+        "description": "test raffle",
+        "prizes": [
+            "p1",
+            "p2"
+        ],
+        "cover_url": "https://picsum.photos/seed/default/800/600"
+    }
+}
