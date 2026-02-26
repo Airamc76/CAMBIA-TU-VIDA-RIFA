@@ -1,22 +1,15 @@
 
--- 🎟️ FIX: 409 CONFLICT & TICKET SYNC 🎟️
--- Unifica la lógica de generación aleatoria (5 dígitos) y añade ON CONFLICT para evitar errores de carrera.
+-- 🎟️ FIX: 409 CONFLICT & TICKET RANGE ADJUSTMENT 🎟️
+-- Unifica la lógica de generación y ajusta el rango al total de la rifa (ej: 0-999 para 1000 tickets).
 
--- 1. Actualizar Función de Trigger (Idempotente)
+-- 1. Actualizar Función de Trigger (Idempotente y Rango Ajustado)
 CREATE OR REPLACE FUNCTION public.generate_raffle_numbers()
 RETURNS trigger AS $$
 BEGIN
-  -- Validar capacidad para 5 dígitos
-  IF new.total_tickets > 100000 THEN
-    RAISE EXCEPTION 'Para 5 dígitos, el máximo de tickets es 100,000.';
-  END IF;
-
-  -- Insertar de forma aleatoria desde el universo 0-99999
+  -- Insertar números desde 0 hasta total_tickets - 1
   INSERT INTO public.raffle_numbers (raffle_id, number, status)
   SELECT new.id, num, 'available'
-  FROM generate_series(0, 99999) AS t(num)
-  ORDER BY random()
-  LIMIT new.total_tickets
+  FROM generate_series(0, new.total_tickets - 1) AS t(num)
   ON CONFLICT (raffle_id, number) DO NOTHING;
   
   RETURN new;
@@ -88,26 +81,18 @@ BEGIN
     currency = EXCLUDED.currency, 
     sold_tickets = v_sold_count;
 
-  -- 🔄 SINCRONIZACIÓN DE NÚMEROS (Pestaña "Sorteos" / "Crear")
-  -- 1. Eliminar excedentes que no estén vendidos si el total bajó
+  -- 🔄 SINCRONIZACIÓN DE NÚMEROS
+  -- 1. Eliminar excedentes si el total bajó (y no están vendidos)
   DELETE FROM public.raffle_numbers 
-  WHERE raffle_id = v_raffle_id AND status = 'available' 
-    AND id NOT IN (
-      SELECT id FROM public.raffle_numbers 
-      WHERE raffle_id = v_raffle_id
-      ORDER BY number ASC -- O cualquier criterio de prioridad
-      LIMIT v_new_total
-    );
+  WHERE raffle_id = v_raffle_id 
+    AND status = 'available' 
+    AND number >= v_new_total;
 
-  -- 2. Insertar faltantes si el total subió (Lógica 5 dígitos aleatorios)
-  -- Intentamos rellenar hasta llegar al total deseado
-  IF v_new_total > (SELECT count(*) FROM public.raffle_numbers WHERE raffle_id = v_raffle_id) THEN
+  -- 2. Insertar faltantes si el total subió (Rango 0 a total_tickets - 1)
+  IF v_new_total > 0 THEN
     INSERT INTO public.raffle_numbers (raffle_id, number, status)
     SELECT v_raffle_id, n, 'available'
-    FROM generate_series(0, 99999) n
-    WHERE NOT EXISTS (SELECT 1 FROM public.raffle_numbers WHERE raffle_id = v_raffle_id AND number = n)
-    ORDER BY random()
-    LIMIT (v_new_total - (SELECT count(*) FROM public.raffle_numbers WHERE raffle_id = v_raffle_id))
+    FROM generate_series(0, v_new_total - 1) n
     ON CONFLICT (raffle_id, number) DO NOTHING;
   END IF;
 
