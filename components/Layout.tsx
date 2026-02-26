@@ -222,12 +222,12 @@ export const Footer: React.FC = () => {
             <div className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
               &copy; {new Date().getFullYear()} CambiatuvidaConDavid Digital
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-blue-500 tracking-[0.4em] uppercase">
-                DESIGN BY <a href="https://tiforbi.com/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-700 transition-colors underline decoration-blue-200 underline-offset-4">TIFORBI</a>
+            <a href="https://tiforbi.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group/tiforbi">
+              <span className="text-[10px] font-black text-blue-500 tracking-[0.4em] uppercase group-hover/tiforbi:text-blue-700 transition-colors">
+                DESIGN BY TIFORBI
               </span>
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.3)]"></div>
-            </div>
+              <img src="/logo_tiforbi.png" alt="Tiforbi Logo" className="h-10 w-auto object-contain transition-transform group-hover/tiforbi:scale-110" />
+            </a>
           </div>
         </div>
 
