@@ -7,9 +7,10 @@ import { dbService } from '../services/dbService';
 import { supabase } from '../lib/supabase';
 import ManageRaffles from './ManageRaffles';
 import ManageUsers from './ManageUsers';
+import RaffleInventory from '../components/RaffleInventory';
 
 type AuthStep = 'login' | 'mfa-setup' | 'mfa-verify';
-type ActiveTab = 'raffles' | 'users';
+type ActiveTab = 'raffles' | 'users' | 'inventory';
 
 const AdminTiforbi: React.FC = () => {
   const navigate = useNavigate();
@@ -225,12 +226,13 @@ const AdminTiforbi: React.FC = () => {
           </div>
           <div className="flex bg-slate-100 p-1.5 rounded-[2rem]">
             <button onClick={() => setActiveTab('raffles')} className={`px-10 py-3.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest ${activeTab === 'raffles' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400'}`}>Sorteos</button>
+            <button onClick={() => setActiveTab('inventory')} className={`px-10 py-3.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest ${activeTab === 'inventory' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400'}`}>Inventario</button>
             <button onClick={() => setActiveTab('users')} className={`px-10 py-3.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest ${activeTab === 'users' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400'}`}>Usuarios</button>
           </div>
           <Button onClick={handleLogout} variant="danger" className="px-8 rounded-2xl text-[10px] uppercase tracking-widest">Salir Root</Button>
         </div>
       </div>
-      {activeTab === 'raffles' ? <ManageRaffles /> : <ManageUsers />}
+      {activeTab === 'raffles' ? <ManageRaffles /> : activeTab === 'inventory' ? <RaffleInventory /> : <ManageUsers />}
     </div>
   );
 };
