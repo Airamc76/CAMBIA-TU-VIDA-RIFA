@@ -1,4 +1,4 @@
-import { supabase, supabasePublic, SUPABASE_ANON_KEY, SUPABASE_URL } from '../lib/supabase';
+import { supabase, supabasePublic, supabaseAdmin, SUPABASE_ANON_KEY, SUPABASE_URL } from '../lib/supabase';
 import { Raffle } from '../types';
 import { handleDBError } from './dbHelpers';
 
@@ -31,8 +31,21 @@ export const raffleRepository = {
     },
 
     async deleteRaffle(id: string) {
-        const { error } = await supabase.from('raffles').update({ status: 'deleted' }).eq('id', id);
-        if (error) throw error;
+        // Usamos supabaseAdmin para bypass de RLS si está disponible
+        const client = supabaseAdmin || supabase;
+        const { error, count } = await client
+            .from('raffles')
+            .update({ status: 'deleted' })
+            .eq('id', id);
+
+        if (error) {
+            console.error('Delete Raffle Error:', error);
+            throw error;
+        }
+
+        if (count === 0) {
+            throw new Error('No se pudo borrar la rifa. Verifica permisos o si el ID existe.');
+        }
     },
 
     async uploadRaffleImage(file: File) {
