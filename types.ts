@@ -5,7 +5,8 @@ export enum RaffleStatus {
   CERRADA = 'closed',
   SORTEADA = 'drawn',
   AGOTADA = 'sold_out',
-  ELIMINADA = 'deleted'
+  ELIMINADA = 'deleted',
+  OCULTA = 'hidden'
 }
 
 export type AdminRole = 'superadmin' | 'pagos';

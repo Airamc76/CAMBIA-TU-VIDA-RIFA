@@ -161,6 +161,7 @@ const ManageRaffles: React.FC = () => {
                   <option value={RaffleStatus.CERRADA}>Cerrada</option>
                   <option value={RaffleStatus.SORTEADA}>Sorteada</option>
                   <option value={RaffleStatus.AGOTADA}>Agotada</option>
+                  <option value={RaffleStatus.OCULTA}>Oculta (Borrador)</option>
                 </select>
               </div>
             </div>
