@@ -145,17 +145,35 @@ const App: React.FC = () => {
       <Router>
         <div className="flex flex-col min-h-screen">
           <Header />
-          <main className="flex-1 container mx-auto">
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/comprar/:id" element={<PurchasePage />} />
-                <Route path="/consultar" element={<Consult />} />
-                <Route path="/admintiforbi" element={<AdminTiforbi />} />
-                <Route path="/pagos" element={<AdminPagos />} />
-              </Routes>
-            </Suspense>
-          </main>
+
+          <div className="flex-1 container mx-auto relative">
+            {/* 🏷️ STICKY BRAND LOGO (Overlays content slightly without pushing it) */}
+            <div className="hidden md:block absolute top-0 left-10 h-full z-10 pointer-events-none">
+              <div className="sticky top-24 pt-4 pointer-events-auto">
+                <div className="group cursor-pointer relative">
+                  <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-2xl scale-95 group-hover:scale-110 group-hover:bg-blue-500/20 transition-all duration-500"></div>
+                  <img
+                    src="/brand_logo_v3.png"
+                    alt="Brand Logo"
+                    className="relative w-44 h-44 object-cover rounded-full border-4 border-white shadow-[0_15px_40px_rgba(0,0,0,0.15)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_25px_50px_rgba(0,0,0,0.25)] group-hover:-translate-y-2 opacity-90 group-hover:opacity-100"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <main className="flex-1 w-full">
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/comprar/:id" element={<PurchasePage />} />
+                  <Route path="/consultar" element={<Consult />} />
+                  <Route path="/admintiforbi" element={<AdminTiforbi />} />
+                  <Route path="/pagos" element={<AdminPagos />} />
+                </Routes>
+              </Suspense>
+            </main>
+          </div>
+
           <Footer />
         </div>
         <FloatingSupport />

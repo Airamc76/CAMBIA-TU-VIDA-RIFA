@@ -8,7 +8,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const corsHeaders = {
-    "Access-Control-Allow-Origin": "https://cambiatuvidacondavid.com",
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -145,6 +145,7 @@ _Si no tienes Telegram no te preocupes, tus tickets también llegaron a tu corre
 
             // 1. Enviar EMAIL de rechazo
             if (RESEND_API_KEY) {
+                console.log(`Sending rejection email to ${record.email} via Resend...`);
                 const whatsappLink = "https://api.whatsapp.com/send/?phone=5804140170156&text=Hola, mi reporte de pago fue rechazado. ID: " + record.id;
                 try {
                     const res = await fetch("https://api.resend.com/emails", {
@@ -180,8 +181,13 @@ _Si no tienes Telegram no te preocupes, tus tickets también llegaron a tu corre
                       `,
                         }),
                     });
-                    results.email = await res.json();
-                } catch (e) { results.email = { error: e.message }; }
+                    const resData = await res.json();
+                    console.log("Resend response (rejection):", JSON.stringify(resData));
+                    results.email = resData;
+                } catch (e) {
+                    console.error("Resend error (rejection):", e.message);
+                    results.email = { error: e.message };
+                }
             }
 
             // 2. Enviar TELEGRAM de rechazo

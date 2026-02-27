@@ -165,15 +165,6 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-[calc(100vh-80px)] bg-white flex flex-col items-center justify-start py-8 px-4 relative overflow-hidden select-none">
 
-      {/* 🏷️ BRAND LOGO (Bottom Left) */}
-      <div className="absolute bottom-10 left-10 z-10 hidden md:block group cursor-pointer">
-        <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-2xl scale-95 group-hover:scale-110 group-hover:bg-blue-500/30 transition-all duration-500"></div>
-        <img
-          src="/brand_logo_v3.png"
-          alt="Brand Logo"
-          className="relative w-56 h-56 object-cover rounded-full border-4 border-white shadow-[0_15px_40px_rgba(0,0,0,0.2)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_25px_50px_rgba(0,0,0,0.3)] group-hover:-translate-y-2"
-        />
-      </div>
 
       {/* 🎯 RAFFLE CAROUSEL */}
       <div
