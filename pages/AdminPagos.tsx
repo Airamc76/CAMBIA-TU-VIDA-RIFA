@@ -167,17 +167,17 @@ const AdminPagos: React.FC = () => {
       const verifiedFactor = factors?.totp?.find(f => f.status === 'verified');
 
       if (!verifiedFactor) {
-        // LIMPIEZA: Si hay factores previos no verificados, los quitamos para evitar duplicados de nombre
-        if (factors?.totp && factors.totp.length > 0) {
-          for (const f of factors.totp) {
-            await supabase.auth.mfa.unenroll({ factorId: f.id });
-          }
+        // LIMPIEZA: Quitamos cualquier factor previo para evitar duplicados de nombre
+        if (factors?.all && factors.all.length > 0) {
+          await Promise.all(factors.all.map(f =>
+            supabase.auth.mfa.unenroll({ factorId: f.id }).catch(() => { })
+          ));
         }
 
         const { data: enroll, error: eErr } = await supabase.auth.mfa.enroll({
           factorType: 'totp',
           issuer: 'CambiatuvidaDavid',
-          friendlyName: 'Staff'
+          friendlyName: `Staff-${Math.floor(Date.now() / 1000)}`
         });
         if (eErr) throw eErr;
         setMfaData({ factorId: enroll.id, qrCode: enroll.totp.qr_code });
@@ -793,9 +793,9 @@ const AdminPagos: React.FC = () => {
                           <tr key={idx} className="hover:bg-white/5 transition-colors group">
                             <td className="px-8 py-6 text-center">
                               <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full font-black text-lg ${tb.rank === 1 ? 'bg-amber-400 text-amber-900 shadow-[0_0_15px_rgba(251,191,36,0.5)]' :
-                                  tb.rank === 2 ? 'bg-slate-300 text-slate-800' :
-                                    tb.rank === 3 ? 'bg-amber-700 text-amber-100' :
-                                      'bg-white/10 text-white/60'
+                                tb.rank === 2 ? 'bg-slate-300 text-slate-800' :
+                                  tb.rank === 3 ? 'bg-amber-700 text-amber-100' :
+                                    'bg-white/10 text-white/60'
                                 }`}>
                                 #{tb.rank}
                               </div>
