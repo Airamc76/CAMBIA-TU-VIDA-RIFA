@@ -11,8 +11,9 @@ const RaffleBookCard: React.FC<{
 }> = ({ raffle, position, isPast }) => {
   const remainingTickets = Math.max(0, (raffle.total_tickets || 0) - (raffle.sold_tickets || 0));
 
+  const minTix = raffle.min_tickets || 3;
   // Lógica de Agotado
-  const isActuallySoldOut = remainingTickets < 3 || isPast;
+  const isActuallySoldOut = remainingTickets < minTix || isPast;
 
   const progress = isActuallySoldOut
     ? 0
@@ -43,26 +44,13 @@ const RaffleBookCard: React.FC<{
       <div className="bg-white rounded-[2.5rem] overflow-hidden flex flex-col h-[680px] md:h-[780px] select-none shadow-xl relative border border-slate-100">
 
         {/* Parte Superior: Imagen */}
-        <div className="relative h-96 md:h-[420px] bg-slate-50 overflow-hidden">
+        <div className="relative h-[440px] md:h-[420px] bg-slate-50 overflow-hidden">
           <img
             src={raffle.cover_url}
             alt={raffle.title}
-            className={`w-full h-full object-cover transition-transform duration-700 ${isActuallySoldOut ? 'grayscale opacity-50' : 'hover:scale-105'}`}
+            className={`w-full h-full object-contain transition-transform duration-700 ${isActuallySoldOut ? 'grayscale opacity-50' : 'hover:scale-105'}`}
             draggable="false"
           />
-
-          {/* ETIQUETA DE PRECIO XL (Esquina superior derecha en la foto) */}
-          {!isActuallySoldOut && (
-            <div className="absolute top-6 right-6 z-40 transform hover:scale-105 transition-transform duration-300">
-              <div className="bg-slate-950/90 backdrop-blur-xl px-6 py-4 rounded-[1.8rem] border-2 border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.4)] flex flex-col items-end min-w-[140px]">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] leading-none mb-1.5">COSTO TICKET</span>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-4xl md:text-5xl font-black text-[#FF1E1E] italic tracking-tighter leading-none drop-shadow-[0_0_15px_rgba(255,30,30,0.4)]">{raffle.ticket_price}</span>
-                  <span className="text-lg md:text-xl font-black text-white uppercase italic tracking-tighter">{raffle.currency || 'BS'}</span>
-                </div>
-              </div>
-            </div>
-          )}
 
           {isActuallySoldOut && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
@@ -72,19 +60,16 @@ const RaffleBookCard: React.FC<{
         </div>
 
         {/* Parte Media: Info y Botones */}
-        <div className="p-8 flex-1 flex flex-col text-center justify-between">
+        <div className="p-6 md:p-8 flex-1 flex flex-col text-center justify-between">
           <div className="space-y-4">
             <h3 className="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tighter leading-[0.9]">{raffle.title}</h3>
-            <p className="text-[12px] font-bold text-slate-400 uppercase leading-relaxed px-4 line-clamp-2">
-              {raffle.description}
-            </p>
           </div>
 
-          <div className="flex flex-col gap-5 mt-6 px-2">
+          <div className="flex flex-col gap-4 md:gap-5 mt-4 md:mt-6 px-2">
             {/* COMPRAR (ROJO MASIVO) */}
             <Link
               to={!isActuallySoldOut ? `/comprar/${raffle.id}` : '#'}
-              className={`w-full py-6 rounded-[2rem] font-black text-white uppercase tracking-tight text-2xl transition-all transform active:scale-95 shadow-2xl ${isActuallySoldOut
+              className={`w-full py-4 md:py-6 rounded-[2rem] font-black text-white uppercase tracking-tight text-xl md:text-2xl transition-all transform active:scale-95 shadow-2xl ${isActuallySoldOut
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                 : 'bg-[#FF0000] hover:bg-[#D90000] shadow-red-500/40 hover:-translate-y-1'
                 }`}
@@ -95,7 +80,7 @@ const RaffleBookCard: React.FC<{
             {/* CONSULTAR (AZUL ELEGANTE) */}
             <Link
               to="/consultar"
-              className="w-full py-6 rounded-[2rem] font-black text-white bg-[#0066FF] hover:bg-[#0052CC] uppercase tracking-tight text-2xl transition-all transform active:scale-95 shadow-2xl shadow-blue-500/40 hover:-translate-y-1"
+              className="w-full py-4 md:py-6 rounded-[2rem] font-black text-white bg-[#0066FF] hover:bg-[#0052CC] uppercase tracking-tight text-xl md:text-2xl transition-all transform active:scale-95 shadow-2xl shadow-blue-500/40 hover:-translate-y-1"
             >
               CONSULTAR TICKETS
             </Link>
@@ -126,8 +111,8 @@ const Home: React.FC = () => {
 
   const allRaffles = useMemo(() => {
     const visible = raffles.filter(r => r.status !== RaffleStatus.ELIMINADA && r.status !== RaffleStatus.OCULTA);
-    const active = visible.filter(r => r.status === RaffleStatus.ACTIVA && (r.total_tickets - (r.sold_tickets || 0)) >= 3);
-    const past = visible.filter(r => r.status !== RaffleStatus.ACTIVA || (r.total_tickets - (r.sold_tickets || 0)) < 3);
+    const active = visible.filter(r => r.status === RaffleStatus.ACTIVA && (r.total_tickets - (r.sold_tickets || 0)) >= (r.min_tickets || 3));
+    const past = visible.filter(r => r.status !== RaffleStatus.ACTIVA || (r.total_tickets - (r.sold_tickets || 0)) < (r.min_tickets || 3));
     return [...active, ...past];
   }, [raffles]);
 
@@ -189,7 +174,7 @@ const Home: React.FC = () => {
               key={raffle.id}
               raffle={raffle}
               position={pos}
-              isPast={raffle.status !== RaffleStatus.ACTIVA || (raffle.total_tickets - (raffle.sold_tickets || 0)) < 3}
+              isPast={raffle.status !== RaffleStatus.ACTIVA || (raffle.total_tickets - (raffle.sold_tickets || 0)) < (raffle.min_tickets || 3)}
             />
           );
         })}

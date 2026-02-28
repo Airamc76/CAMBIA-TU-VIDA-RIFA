@@ -31,6 +31,8 @@ export interface Raffle {
   currency?: string;
   prizes?: string[];
   created_at?: string;
+  min_tickets?: number;
+  cover_position?: string;
 }
 
 export interface Purchase {

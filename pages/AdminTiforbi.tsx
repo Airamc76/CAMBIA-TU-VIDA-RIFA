@@ -29,6 +29,12 @@ const AdminTiforbi: React.FC = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
+      // 🚩 BYPASS PARA TESTING EN STAGING
+      if (import.meta.env.MODE === 'staging') {
+        setIsLogged(true);
+        setChecking(false);
+        return;
+      }
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {

@@ -5,6 +5,7 @@ import { Input, Button, ConfirmDialog, BadgeStatus } from '../components/UI';
 import { Raffle, RaffleStatus } from '../types';
 import { dbService } from '../services/dbService';
 
+
 const ManageRaffles: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -26,6 +27,7 @@ const ManageRaffles: React.FC = () => {
     description: '',
     prizes_input: '',
     draw_date: '',
+    min_tickets: 3,
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -58,6 +60,7 @@ const ManageRaffles: React.FC = () => {
         description: formData.description,
         draw_date: formData.draw_date ? new Date(formData.draw_date).toISOString() : undefined,
         prizes: prizesArray,
+        min_tickets: formData.min_tickets,
       };
 
       if (editingId) {
@@ -103,7 +106,8 @@ const ManageRaffles: React.FC = () => {
       prizes_input: raffle.prizes?.join('\n') || '',
       draw_date: raffle.draw_date || '',
       total_tickets: raffle.total_tickets,
-      sold_tickets: raffle.sold_tickets
+      sold_tickets: raffle.sold_tickets,
+      min_tickets: raffle.min_tickets || 3,
     });
     setShowForm(true);
   };
@@ -147,10 +151,20 @@ const ManageRaffles: React.FC = () => {
 
               <Input label="Fecha del Sorteo" type="date" value={formData.draw_date} onChange={e => setFormData({ ...formData, draw_date: e.target.value })} />
               <Input label="Tickets Totales" type="number" value={formData.total_tickets} onChange={e => setFormData({ ...formData, total_tickets: Number(e.target.value) })} />
+              <Input label="Mínimo por Compra" type="number" value={formData.min_tickets} onChange={e => setFormData({ ...formData, min_tickets: Number(e.target.value) })} />
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 lg:col-span-2">
                 <label className="text-sm font-black text-slate-700 uppercase tracking-widest">Imagen de Portada</label>
-                <input type="file" onChange={e => setSelectedFile(e.target.files ? e.target.files[0] : null)} className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-black uppercase text-slate-500 file:bg-slate-900 file:text-white file:border-0 file:rounded-xl file:px-4 file:py-1.5 file:mr-4 file:cursor-pointer" />
+                <input type="file" accept="image/*" onChange={e => setSelectedFile(e.target.files ? e.target.files[0] : null)} className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-black uppercase text-slate-500 file:bg-slate-900 file:text-white file:border-0 file:rounded-xl file:px-4 file:py-1.5 file:mr-4 file:cursor-pointer" />
+                {(selectedFile || formData.cover_url) && (
+                  <div className="mt-4 rounded-[2.5rem] overflow-hidden border border-slate-200 bg-slate-50 relative aspect-square max-w-[420px] shadow-sm">
+                    <img
+                      src={selectedFile ? URL.createObjectURL(selectedFile) : formData.cover_url}
+                      alt="Vista previa"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col gap-2">
@@ -180,7 +194,7 @@ const ManageRaffles: React.FC = () => {
         {raffles.filter(r => r.status !== RaffleStatus.ELIMINADA).map(r => (
           <div key={r.id} className="bg-white p-8 rounded-[3.5rem] border border-slate-200 hover:shadow-2xl transition-all group flex flex-col gap-8 shadow-sm">
             <div className="relative h-56 rounded-[2.5rem] overflow-hidden bg-slate-100">
-              <img src={r.cover_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+              <img src={r.cover_url} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" />
               <div className="absolute top-6 right-6">
                 <BadgeStatus status={r.status} />
               </div>

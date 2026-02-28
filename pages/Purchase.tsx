@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRaffles } from '../App';
 import { Input, Button, Modal } from '../components/UI';
@@ -29,13 +29,20 @@ const Purchase: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (raffle && form.count < (raffle.min_tickets || 3)) {
+      setForm(prev => ({ ...prev, count: raffle.min_tickets || 3 }));
+    }
+  }, [raffle]);
+
   if (!raffle) return null;
 
+  const minTix = raffle.min_tickets || 3;
   const remaining = Math.max(0, raffle.total_tickets - (raffle.sold_tickets || 0));
   const leftAfterPurchase = remaining - form.count;
-  const isLeavingOrphans = leftAfterPurchase > 0 && leftAfterPurchase < 3;
+  const isLeavingOrphans = leftAfterPurchase > 0 && leftAfterPurchase < minTix;
   const isOverStock = form.count > remaining;
-  const isInvalidAmount = isOverStock || isLeavingOrphans || form.count < 3;
+  const isInvalidAmount = isOverStock || isLeavingOrphans || form.count < minTix;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +148,7 @@ const Purchase: React.FC = () => {
               <img
                 src={raffle.cover_url || 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=2069&auto=format&fit=crop'}
                 alt={raffle.title}
-                className="relative w-full aspect-square object-cover rounded-[2rem] shadow-2xl"
+                className={`relative w-full aspect-square object-contain object-${raffle.cover_position || 'center'} rounded-[2rem] shadow-2xl bg-white p-2`}
               />
             </div>
 
@@ -160,11 +167,11 @@ const Purchase: React.FC = () => {
           <div className="bg-white p-8 rounded-[3.5rem] border border-blue-100 shadow-xl space-y-6 animate-in slide-in-from-left duration-700">
             <label className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] block text-center">¿Cuántos tickets compraste?</label>
             <div className="flex items-center justify-center gap-5">
-              <button type="button" onClick={() => setForm({ ...form, count: Math.max(3, form.count - 1) })} className="w-12 h-12 rounded-xl bg-slate-50 border border-blue-100 text-blue-600 font-black text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">-</button>
+              <button type="button" onClick={() => setForm({ ...form, count: Math.max(minTix, form.count - 1) })} className="w-12 h-12 rounded-xl bg-slate-50 border border-blue-100 text-blue-600 font-black text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">-</button>
               <div className="flex flex-col items-center">
                 <input
                   type="number"
-                  min="4"
+                  min={minTix}
                   value={form.count}
                   onChange={e => setForm({ ...form, count: parseInt(e.target.value) || 0 })}
                   className={`w-28 text-center text-4xl font-black bg-transparent outline-none ${isInvalidAmount ? 'text-red-500' : 'text-slate-900'}`}
@@ -176,7 +183,7 @@ const Purchase: React.FC = () => {
 
             <div className="text-[9px] font-black uppercase tracking-widest text-center">
               {isLeavingOrphans ? (
-                <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Compra {remaining} o deja al menos 3.</span>
+                <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Compra {remaining} o deja al menos {minTix}.</span>
               ) : isOverStock ? (
                 <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Máximo {remaining} disponibles.</span>
               ) : (
@@ -337,7 +344,7 @@ const Purchase: React.FC = () => {
                 "Los tickets se enviarán en un plazo máximo de 24 horas, debido al alto volumen de pagos por procesar.",
                 "Solo pueden participar personas naturales mayores de 18 años con nacionalidad venezolana o extranjeros. Los ganadores en el extranjero deberán designar a una persona de confianza en Venezuela para recibir el premio.",
                 "Los premios deben retirarse en persona en la ubicación designada para cada sorteo. Realizamos entregas personales únicamente en la dirección indicada por el ganador del primer premio o premio mayor.",
-                "La compra mínima requerida para participar es de tres (03) tickets. Estos se asignarán de manera aleatoria y se enviarán al correo electrónico proporcionados.",
+                `La compra mínima requerida para participar es de ${minTix} tickets. Estos se asignarán de manera aleatoria y se enviarán al correo electrónico proporcionados.`,
                 "Tienes un plazo de 72 horas para reclamar tu premio.",
                 "Los ganadores aceptan aparecer en el contenido audiovisual del sorteo, mostrando su presencia en redes sociales y durante la entrega de premios. Esto es OBLIGATORIO."
               ].map((term, index) => (
