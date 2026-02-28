@@ -1,8 +1,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://lnhwzzmcmlelpmqptwwz.supabase.co';
-const SUPABASE_SERVICE_ROLE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZCI6ImxuaHd6em1jbWxlbHBtcXB0d3d6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcwNzQ5NTkxNSwiZXhwIjoyMDIzMDcxOTE1fQ.XoR4p-h-Vf_LqH4-U8weVCj7_WCK26vE8Yoe8b3JueZ3fU';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 async function debug() {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);

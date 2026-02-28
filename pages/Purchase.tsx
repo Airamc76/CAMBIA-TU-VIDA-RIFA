@@ -17,7 +17,7 @@ const Purchase: React.FC = () => {
     name: '',
     email: '',
     whatsapp: '',
-    count: 3,
+    count: 1, // Will be updated by useEffect
     paymentMethod: 'pago_movil',
     reference: '',
     file: null as File | null
@@ -181,7 +181,7 @@ const Purchase: React.FC = () => {
               <button type="button" onClick={() => setForm({ ...form, count: form.count + 1 })} className="w-12 h-12 rounded-xl bg-slate-50 border border-blue-100 text-blue-600 font-black text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">+</button>
             </div>
 
-            <div className="text-[9px] font-black uppercase tracking-widest text-center">
+            <div className="text-[10px] font-black uppercase tracking-widest text-center space-y-2">
               {isLeavingOrphans ? (
                 <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Compra {remaining} o deja al menos {minTix}.</span>
               ) : isOverStock ? (
@@ -189,6 +189,12 @@ const Purchase: React.FC = () => {
               ) : (
                 <span className="text-slate-400">Total a Pagar: <span className="text-blue-600 text-lg font-black ml-1">{(raffle.ticket_price * form.count).toLocaleString()} {raffle.currency || 'Bs'}</span></span>
               )}
+
+              <div className="pt-2 border-t border-slate-50">
+                <span className="text-blue-600 font-black text-[11px] bg-blue-50 px-4 py-2 rounded-full inline-block">
+                  Mínimo de compra: {minTix} tickets
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -242,8 +248,8 @@ const Purchase: React.FC = () => {
                 <div className="group cursor-pointer">
                   <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Teléfono / Pago Móvil</span>
                   <div className="flex items-center justify-between">
-                    <span className="font-black text-slate-900 text-lg">0424 232 0467</span>
-                    <button type="button" onClick={() => navigator.clipboard.writeText('04242320467')} className="opacity-40 group-hover:opacity-100 transition-all text-blue-600"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg></button>
+                    <span className="font-black text-slate-900 text-lg">0414 017 0156</span>
+                    <button type="button" onClick={() => navigator.clipboard.writeText('04140170156')} className="opacity-40 group-hover:opacity-100 transition-all text-blue-600"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg></button>
                   </div>
                 </div>
                 <div className="group cursor-pointer border-t border-slate-50 pt-3">
