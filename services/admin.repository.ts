@@ -205,5 +205,11 @@ export const adminRepository = {
         const { error } = await supabase.rpc('delete_purchase', { p_request_id: id });
         if (error) handleDBError(error, 'eliminar compra');
         return true;
+    },
+
+    async getDuplicateReferences() {
+        const { data, error } = await supabase.rpc('get_duplicate_references');
+        if (error) handleDBError(error, 'obtener duplicados');
+        return data || [];
     }
 };

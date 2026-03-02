@@ -58,6 +58,11 @@ const Purchase: React.FC = () => {
   };
 
   const handleFinalSubmit = async () => {
+    if (form.reference.length !== 6) {
+      setErrorMsg("Por favor, ingrese exactamente los últimos 6 dígitos de su referencia bancaria.");
+      return;
+    }
+
     setIsConfirmModalOpen(false);
     setIsSubmitting(true);
     try {
@@ -87,7 +92,13 @@ const Purchase: React.FC = () => {
         (err?.details ? "\n" + err.details : "") +
         (err?.hint ? "\n" + err.hint : "");
 
-      setErrorMsg(fullErrorMessage);
+      if (fullErrorMessage.includes('REFERENCIA_DUPLICADA')) {
+        setErrorMsg("Esta referencia ya ha sido utilizada en otra compra. Si crees que hay un error, por favor contacta a nuestro equipo de soporte por WhatsApp.");
+      } else if (fullErrorMessage.includes('Debe ingresar exactamente')) {
+        setErrorMsg("Debe ingresar los últimos 6 dígitos numéricos de su referencia.");
+      } else {
+        setErrorMsg(fullErrorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -278,7 +289,17 @@ const Purchase: React.FC = () => {
                   <option value="pago_movil">Pago Móvil</option>
                 </select>
               </div>
-              <Input label="Código de Referencia" required placeholder="Últimos 4-6 dígitos" value={form.reference} onChange={e => setForm({ ...form, reference: e.target.value })} />
+              <Input
+                label="Código de Referencia"
+                required
+                placeholder="Últimos 6 dígitos"
+                maxLength={6}
+                value={form.reference}
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  if (val.length <= 6) setForm({ ...form, reference: val });
+                }}
+              />
             </div>
 
             <div className={`p-8 rounded-[2.5rem] border-2 border-dashed transition-all text-center ${form.file ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-200 hover:border-blue-400'}`}>

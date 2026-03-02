@@ -9,6 +9,7 @@ import ManageRaffles from './ManageRaffles';
 import ManageUsers from './ManageUsers';
 import RaffleInventory from '../components/RaffleInventory';
 import AdminSearchName from '../components/AdminSearchName';
+import AdminDuplicateRefs from '../components/AdminDuplicateRefs';
 
 type AuthStep = 'login' | 'mfa-setup' | 'mfa-verify';
 type ActiveTab = 'raffles' | 'users' | 'inventory';
@@ -27,6 +28,7 @@ const AdminTiforbi: React.FC = () => {
   const [isLogged, setIsLogged] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [externalSearch, setExternalSearch] = useState<{ query: string; type: 'name' | 'reference' } | undefined>();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -245,7 +247,8 @@ const AdminTiforbi: React.FC = () => {
         </div>
       </div>
 
-      <AdminSearchName />
+      <AdminDuplicateRefs onSearchRef={(ref) => setExternalSearch({ query: ref, type: 'reference' })} />
+      <AdminSearchName externalSearch={externalSearch} />
 
       {activeTab === 'raffles' ? <ManageRaffles /> : activeTab === 'inventory' ? <RaffleInventory /> : <ManageUsers />}
     </div>

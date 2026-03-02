@@ -1,9 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Modal } from './UI';
 import { dbService } from '../services/dbService';
 
-const AdminSearchName: React.FC = () => {
+interface AdminSearchNameProps {
+    externalSearch?: { query: string; type: 'name' | 'reference' };
+}
+
+const AdminSearchName: React.FC<AdminSearchNameProps> = ({ externalSearch }) => {
     const [query, setQuery] = useState('');
     const [searchType, setSearchType] = useState<'name' | 'reference'>('name');
     const [results, setResults] = useState<any[]>([]);
@@ -14,15 +18,18 @@ const AdminSearchName: React.FC = () => {
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleSearch = async (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
-        if (!query.trim()) return;
+    const handleSearch = async (forcedQuery?: string, forcedType?: 'name' | 'reference') => {
+        const activeQuery = forcedQuery ?? query;
+        const activeType = forcedType ?? searchType;
+
+        if (!activeQuery.trim()) return;
 
         setIsSearching(true);
         setHasSearched(true);
         try {
-            const data = await dbService.searchPurchases(query, searchType);
+            const data = await dbService.searchPurchases(activeQuery, activeType);
             setResults(data);
+            if (!showSearch) setShowSearch(true);
         } catch (error) {
             console.error("Error searching:", error);
         } finally {
@@ -30,25 +37,23 @@ const AdminSearchName: React.FC = () => {
         }
     };
 
-    const handleDelete = async () => {
-        if (!deletingId) return;
+    // Responder a búsquedas externas (desde el panel de duplicados)
+    useEffect(() => {
+        if (externalSearch) {
+            setQuery(externalSearch.query);
+            setSearchType(externalSearch.type);
+            handleSearch(externalSearch.query, externalSearch.type);
 
-        setIsDeleting(true);
-        try {
-            await dbService.deletePurchase(deletingId);
-            // Refresh results
-            await handleSearch();
-            setDeletingId(null);
-        } catch (error) {
-            console.error("Error deleting purchase:", error);
-            alert("Error al eliminar la compra. Verifica los permisos.");
-        } finally {
-            setIsDeleting(false);
+            // Scroll suave hacia el buscador
+            const element = document.getElementById('master-search-tool');
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
-    };
+    }, [externalSearch]);
 
     return (
-        <div className="max-w-7xl mx-auto px-4 mb-12">
+        <div id="master-search-tool" className="max-w-7xl mx-auto px-4 mb-12 scroll-mt-10">
             <div className="bg-slate-900 p-10 md:p-14 rounded-[4rem] shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none"></div>
                 <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl group-hover:bg-blue-600/20 transition-colors duration-700"></div>
@@ -84,7 +89,7 @@ const AdminSearchName: React.FC = () => {
 
                 {showSearch && (
                     <div className="relative mt-12 pt-12 border-t border-white/10 animate-in fade-in slide-in-from-top-4 duration-500">
-                        <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-6 items-end">
+                        <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex flex-col lg:flex-row gap-6 items-end">
                             <div className="w-full lg:w-48 space-y-3">
                                 <label className="text-[10px] font-black text-blue-200 uppercase tracking-widest ml-4">Tipo de Búsqueda</label>
                                 <select
@@ -142,7 +147,6 @@ const AdminSearchName: React.FC = () => {
                                             {results.map((res) => (
                                                 <div key={res.id} className="bg-white/5 border border-white/10 p-6 md:p-8 rounded-[2.5rem] hover:bg-white/10 transition-colors group/item relative overflow-hidden">
 
-                                                    {/* Botón de Borrar (Liberar) flotante */}
                                                     <button
                                                         onClick={() => setDeletingId(res.id)}
                                                         className="absolute top-6 right-6 p-3 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-2xl transition-all border border-rose-500/20 z-10"
@@ -221,50 +225,33 @@ const AdminSearchName: React.FC = () => {
                 )}
             </div>
 
-            {/* Modal de Comprobante */}
-            <Modal
-                isOpen={!!viewingEvidence}
-                onClose={() => setViewingEvidence(null)}
-                title="Comprobante de Pago"
-            >
+            <Modal isOpen={!!viewingEvidence} onClose={() => setViewingEvidence(null)} title="Comprobante de Pago">
                 <div className="flex items-center justify-center p-4 bg-slate-50 rounded-3xl">
-                    <img
-                        src={viewingEvidence!}
-                        className="max-w-full h-auto rounded-xl shadow-2xl"
-                        alt="Comprobante"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5NGExYjIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSIzIiB3aWR0aD0iMjAiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ij48L2NpcmNsZT48cG9seWdvbiBwb2ludHM9IjIxIDE1IDE2IDEwIDUgMjEgMjEgMjEiPjwvcG9seWdvbj48L3N2Zz4=';
-                        }}
-                    />
+                    <img src={viewingEvidence!} className="max-w-full h-auto rounded-xl shadow-2xl" alt="Comprobante" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5NGExYjIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSIzIiB3aWR0aD0iMjAiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ij48L2NpcmNsZT48cG9seWdvbiBwb2ludHM9IjIxIDE1IDE2IDEwIDUgMjEgMjEgMjEiPjwvcG9seWdvbj48L3N2Zz4='; }} />
                 </div>
             </Modal>
 
-            {/* Modal de Confirmación de Borrado */}
-            <Modal
-                isOpen={!!deletingId}
-                onClose={() => setDeletingId(null)}
-                title="¿Liberar Tickets?"
-            >
+            <Modal isOpen={!!deletingId} onClose={() => setDeletingId(null)} title="¿Liberar Tickets?">
                 <div className="space-y-6">
                     <div className="bg-rose-50 p-6 rounded-3xl border border-rose-100 italic text-slate-600 text-sm">
                         Esta acción eliminará permanentemente la compra y liberará los números para que otras personas puedan comprarlos.
                         <span className="block mt-2 font-black uppercase text-rose-500 text-[10px] tracking-widest">⚠️ Esta acción no se puede deshacer.</span>
                     </div>
                     <div className="flex gap-4">
-                        <Button
-                            onClick={() => setDeletingId(null)}
-                            fullWidth
-                            className="bg-slate-200 text-slate-600 hover:bg-slate-300 rounded-2xl py-4"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            onClick={handleDelete}
-                            variant="danger"
-                            fullWidth
-                            disabled={isDeleting}
-                            className="rounded-2xl py-4 font-black uppercase tracking-widest shadow-xl shadow-rose-500/20"
-                        >
+                        <Button onClick={() => setDeletingId(null)} fullWidth className="bg-slate-200 text-slate-600 hover:bg-slate-300 rounded-2xl py-4">Cancelar</Button>
+                        <Button onClick={async () => {
+                            if (!deletingId) return;
+                            setIsDeleting(true);
+                            try {
+                                await dbService.deletePurchase(deletingId);
+                                await handleSearch();
+                                setDeletingId(null);
+                            } catch (error) {
+                                alert("Error al eliminar la compra.");
+                            } finally {
+                                setIsDeleting(false);
+                            }
+                        }} variant="danger" fullWidth disabled={isDeleting} className="rounded-2xl py-4 font-black uppercase tracking-widest shadow-xl shadow-rose-500/20">
                             {isDeleting ? 'Liberando...' : 'Liberar Tickets'}
                         </Button>
                     </div>
