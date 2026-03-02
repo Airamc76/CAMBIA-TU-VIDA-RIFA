@@ -10,6 +10,7 @@ import ManageUsers from './ManageUsers';
 import RaffleInventory from '../components/RaffleInventory';
 import AdminSearchName from '../components/AdminSearchName';
 import AdminDuplicateRefs from '../components/AdminDuplicateRefs';
+import AdminBlessedNumbers from '../components/AdminBlessedNumbers';
 
 type AuthStep = 'login' | 'mfa-setup' | 'mfa-verify';
 type ActiveTab = 'raffles' | 'users' | 'inventory';
@@ -248,6 +249,7 @@ const AdminTiforbi: React.FC = () => {
       </div>
 
       <AdminDuplicateRefs onSearchRef={(ref) => setExternalSearch({ query: ref, type: 'reference' })} />
+      <AdminBlessedNumbers />
       <AdminSearchName externalSearch={externalSearch} />
 
       {activeTab === 'raffles' ? <ManageRaffles /> : activeTab === 'inventory' ? <RaffleInventory /> : <ManageUsers />}

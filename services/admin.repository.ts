@@ -211,5 +211,28 @@ export const adminRepository = {
         const { data, error } = await supabase.rpc('get_duplicate_references');
         if (error) handleDBError(error, 'obtener duplicados');
         return data || [];
+    },
+
+    async getBlessedNumbers() {
+        const { data, error } = await supabase.rpc('get_blessed_numbers_status');
+        if (error) handleDBError(error, 'obtener números bendecidos');
+        return data || [];
+    },
+
+    async toggleBlessedNumber(id: string, isReserved: boolean) {
+        const { error } = await supabase
+            .from('blessed_numbers')
+            .update({ is_reserved: isReserved })
+            .eq('id', id);
+        if (error) handleDBError(error, 'actualizar reserva');
+        return true;
+    },
+
+    async addBlessedNumber(number: number, raffleId: string, description: string) {
+        const { error } = await supabase
+            .from('blessed_numbers')
+            .insert({ number, raffle_id: raffleId, description, is_reserved: true });
+        if (error) handleDBError(error, 'agregar número bendecido');
+        return true;
     }
 };
