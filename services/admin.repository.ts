@@ -165,5 +165,45 @@ export const adminRepository = {
             console.error('Error fetching top buyers:', error);
             return [];
         }
+    },
+
+    async searchPurchases(query: string, type: 'name' | 'reference' = 'name') {
+        let q = supabase
+            .from('purchase_requests')
+            .select('*, raffles:raffle_id(title)')
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        if (type === 'name') {
+            q = q.ilike('full_name', `%${query}%`);
+        } else {
+            q = q.eq('reference', query);
+        }
+
+        const { data, error } = await q;
+
+        if (error) handleDBError(error, `buscar por ${type}`);
+
+        return (data || []).map((p: any) => ({
+            id: p.id,
+            user: p.full_name,
+            dni: p.national_id,
+            whatsapp: p.whatsapp,
+            email: p.email,
+            raffle: (p.raffles as any)?.title,
+            amount: p.amount,
+            ticketsCount: p.ticket_qty,
+            status: p.status === 'approved' ? 'aprobado' : p.status === 'rejected' ? 'rechazado' : 'pendiente',
+            ref: p.reference || 'S/N',
+            evidence_url: p.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${p.receipt_path}` : null,
+            date: new Date(p.created_at).toLocaleDateString(),
+            assignedNumbers: p.assigned_numbers || []
+        }));
+    },
+
+    async deletePurchase(id: string) {
+        const { error } = await supabase.rpc('delete_purchase', { p_request_id: id });
+        if (error) handleDBError(error, 'eliminar compra');
+        return true;
     }
 };

@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import ManageRaffles from './ManageRaffles';
 import ManageUsers from './ManageUsers';
 import RaffleInventory from '../components/RaffleInventory';
+import AdminSearchName from '../components/AdminSearchName';
 
 type AuthStep = 'login' | 'mfa-setup' | 'mfa-verify';
 type ActiveTab = 'raffles' | 'users' | 'inventory';
@@ -243,6 +244,9 @@ const AdminTiforbi: React.FC = () => {
           <Button onClick={handleLogout} variant="danger" className="px-8 rounded-2xl text-[10px] uppercase tracking-widest">Salir Root</Button>
         </div>
       </div>
+
+      <AdminSearchName />
+
       {activeTab === 'raffles' ? <ManageRaffles /> : activeTab === 'inventory' ? <RaffleInventory /> : <ManageUsers />}
     </div>
   );
