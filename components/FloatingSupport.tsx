@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const FloatingSupport: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [showBubble, setShowBubble] = useState(false);
+    const location = useLocation();
 
     useEffect(() => {
-        // Aparece el botón después de 1.5s
+        // Solo iniciar timers si estamos en el Home
+        if (location.pathname !== '/') return;
+
         const timer = setTimeout(() => {
             setIsVisible(true);
-            // Aparece la burbuja de texto después de 3s
             setTimeout(() => setShowBubble(true), 1500);
         }, 1500);
 
         return () => clearTimeout(timer);
-    }, []);
+    }, [location.pathname]);
+
+    if (location.pathname !== '/') return null;
 
     return (
         <div

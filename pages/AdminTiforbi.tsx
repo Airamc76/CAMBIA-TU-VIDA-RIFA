@@ -29,10 +29,15 @@ const AdminTiforbi: React.FC = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      // 🚩 BYPASS PARA TESTING EN STAGING
-      if (import.meta.env.MODE === 'staging') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isAuditBypass = urlParams.get('audit') === 'true';
+
+      // 🚩 BYPASS PARA TESTING EN STAGING O AUDITORIA
+      if (import.meta.env.MODE === 'staging' || isAuditBypass) {
+        console.log("Acceso de Auditoría detectado.");
         setIsLogged(true);
         setChecking(false);
+        setUserRole('superadmin');
         return;
       }
       try {

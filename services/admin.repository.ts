@@ -110,6 +110,7 @@ export const adminRepository = {
                 ticketsCount: p.ticket_qty,
                 status: p.status,
                 evidence_url: p.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${p.receipt_path}` : null,
+                ref: p.reference || 'S/N',
                 time: localDate.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })
             };
 
