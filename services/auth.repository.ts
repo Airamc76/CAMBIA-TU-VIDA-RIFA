@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { AdminRole } from '../types';
 import { normalizeEmail } from './dbHelpers';
 
@@ -36,23 +36,7 @@ export const authRepository = {
     },
 
     async createAdminUser(data: any) {
-        if (!supabaseAdmin) {
-            throw new Error("Configuración incompleta: Se requiere SERVICE_ROLE_KEY para crear usuarios.");
-        }
-        const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.createUser({
-            email: data.email,
-            password: data.password,
-            email_confirm: true
-        });
-        if (authErr) throw authErr;
-
-        const { error: dbErr } = await supabaseAdmin.from('admins').insert({
-            user_id: authUser.user.id,
-            role: data.role
-        });
-        if (dbErr) throw dbErr;
-
-        return authUser.user;
+        throw new Error("Por razones de seguridad, la creación de usuarios administrativos desde el frontend ha sido deshabilitada. Usa el panel de Supabase o crea una Edge Function.");
     },
 
     async updateAdminUser(data: any) {
@@ -64,11 +48,7 @@ export const authRepository = {
             if (error) throw error;
         }
         if (data.password) {
-            if (!supabaseAdmin) throw new Error("Se requiere SERVICE_ROLE_KEY para resetear contraseñas.");
-            const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
-                password: data.password
-            });
-            if (error) throw error;
+            throw new Error("Por razones de seguridad, el reseteo de contraseñas de otros usuarios ha sido deshabilitado del frontend. Usa el panel de Supabase.");
         }
         return true;
     },
@@ -80,11 +60,6 @@ export const authRepository = {
     },
 
     async deleteAdminUser(userId: string) {
-        if (!supabaseAdmin) throw new Error("Se requiere SERVICE_ROLE_KEY para eliminar usuarios.");
-        const { error: dbErr } = await supabaseAdmin.from('admins').delete().eq('user_id', userId);
-        if (dbErr) throw dbErr;
-        const { error: authErr } = await supabaseAdmin.auth.admin.deleteUser(userId);
-        if (authErr) throw authErr;
-        return true;
+        throw new Error("Por razones de seguridad, la eliminación de usuarios desde el frontend ha sido deshabilitada. Usa el panel de Supabase.");
     }
 };

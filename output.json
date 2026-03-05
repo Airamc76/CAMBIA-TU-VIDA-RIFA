@@ -1,0 +1,356 @@
+Checking purchases in the last 3 days...
+Found 44 purchases in the last 3 days.
+[
+  {
+    "id": "babef7b3-ae40-4a3e-b81e-1311d8ae668a",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-05T03:02:28.196562+00:00",
+    "full_name": "Sugeidin castillo ",
+    "reference": "220006"
+  },
+  {
+    "id": "5d95c0fc-3d5e-4cc5-a12f-282966752ad0",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-05T01:45:53.216245+00:00",
+    "full_name": "maria Vasquez ",
+    "reference": "172877"
+  },
+  {
+    "id": "147ea55d-4bba-4504-ab46-9b2989deddd6",
+    "status": "approved",
+    "amount": 1620,
+    "created_at": "2026-03-05T01:04:27.223162+00:00",
+    "full_name": "Naudy Matamoros ",
+    "reference": "614093"
+  },
+  {
+    "id": "475df03b-281d-4140-9019-59d98cebb96d",
+    "status": "approved",
+    "amount": 1080,
+    "created_at": "2026-03-05T00:55:08.222013+00:00",
+    "full_name": "René José Quero Valles",
+    "reference": "533219"
+  },
+  {
+    "id": "a3ecf861-b66e-405b-8d66-bd2f50744925",
+    "status": "approved",
+    "amount": 5400,
+    "created_at": "2026-03-05T00:42:30.26604+00:00",
+    "full_name": "Francisco Hernandez ",
+    "reference": "432838"
+  },
+  {
+    "id": "1274b369-db5c-41b1-8a31-90125b28d5d2",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-05T00:17:12.641336+00:00",
+    "full_name": "Rosangela Salavarria ",
+    "reference": "005276"
+  },
+  {
+    "id": "4d390de6-8c3d-4bc7-ad01-dcbafadbe167",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-05T00:13:01.059676+00:00",
+    "full_name": "Nairoby barrios",
+    "reference": "139628"
+  },
+  {
+    "id": "0d05290a-10b9-4726-8fc4-0300501e3050",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-04T23:59:00.624027+00:00",
+    "full_name": "Julio brito",
+    "reference": "005275"
+  },
+  {
+    "id": "9db2e6f8-adad-4d90-ad39-2c446370f341",
+    "status": "approved",
+    "amount": 2700,
+    "created_at": "2026-03-04T22:43:00.703031+00:00",
+    "full_name": "Denny José ",
+    "reference": "172743"
+  },
+  {
+    "id": "0f6a7018-5b19-4239-aa3c-e9117b26269c",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-04T22:22:52.002333+00:00",
+    "full_name": "Dainni Carina ",
+    "reference": "927576"
+  },
+  {
+    "id": "a3168b4a-95fd-4851-9d92-cb9a0618808d",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-04T22:16:43.443172+00:00",
+    "full_name": "Deglimar Pérez ",
+    "reference": "865117"
+  },
+  {
+    "id": "0fec626a-075f-40a6-8932-74d514238d71",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-04T22:10:31.245606+00:00",
+    "full_name": "Rosa Colmenares",
+    "reference": "797673"
+  },
+  {
+    "id": "6c9aa304-48f6-4949-9737-ee63ced29479",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-04T22:07:32.663432+00:00",
+    "full_name": "Mari Segueri ",
+    "reference": "767500"
+  },
+  {
+    "id": "ae3f64f4-760e-42f6-88f1-67f566a579af",
+    "status": "approved",
+    "amount": 1080,
+    "created_at": "2026-03-04T01:44:02.323354+00:00",
+    "full_name": "Wuinder contreras ",
+    "reference": "614354"
+  },
+  {
+    "id": "40494335-3366-413d-a732-54ac424c45c2",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-04T01:42:35.66335+00:00",
+    "full_name": "Roxana Salavarria",
+    "reference": "005267"
+  },
+  {
+    "id": "226e7ee5-3720-4e5e-92b3-134222c7e503",
+    "status": "approved",
+    "amount": 1080,
+    "created_at": "2026-03-04T01:31:24.51351+00:00",
+    "full_name": "Edgar Camacaro ",
+    "reference": "355923"
+  },
+  {
+    "id": "ef80535d-9df3-45ff-8913-445e73d72b38",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-04T01:13:11.02571+00:00",
+    "full_name": "Yuhedys Brito ",
+    "reference": "171087"
+  },
+  {
+    "id": "120968b8-6658-47d1-8f4c-789e2c66c183",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-04T00:19:26.353669+00:00",
+    "full_name": "Yusbely Brito",
+    "reference": "766885"
+  },
+  {
+    "id": "eb1b360d-0dfb-45ab-a585-33eed0169531",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-03T23:09:48.103962+00:00",
+    "full_name": "Wolman Betancourt ",
+    "reference": "236841"
+  },
+  {
+    "id": "df875ef9-7b52-43da-8f33-c0853085545d",
+    "status": "approved",
+    "amount": 2700,
+    "created_at": "2026-03-03T22:19:53.317275+00:00",
+    "full_name": "Evelin Ramos ",
+    "reference": "915715"
+  },
+  {
+    "id": "b66aced0-bce8-4228-84a3-f075503f6d2c",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-03T22:15:57.348377+00:00",
+    "full_name": "Odra Barrios ",
+    "reference": "927360"
+  },
+  {
+    "id": "1b8fac9b-5cac-4dff-9cad-5de110c1c178",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-03T20:06:38.829073+00:00",
+    "full_name": "Maria victoria Madrid ",
+    "reference": "335060"
+  },
+  {
+    "id": "cdd8ac74-712a-4143-8176-05e37a9b752a",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-03T18:40:17.985859+00:00",
+    "full_name": "Orismar perez ",
+    "reference": "531502"
+  },
+  {
+    "id": "d523dec8-5269-4351-9b4d-48651082aa00",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-03T18:22:23.075977+00:00",
+    "full_name": "Ender Marchan ",
+    "reference": "372333"
+  },
+  {
+    "id": "b759449b-d47f-461d-bbf3-05cb24f2b11d",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-03T18:18:34.163187+00:00",
+    "full_name": "Caymary Sabana ",
+    "reference": "324913"
+  },
+  {
+    "id": "7ef7931d-7e6e-4e08-b651-496fb7da19b3",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-03T16:19:02.136233+00:00",
+    "full_name": "Jesús delgado ",
+    "reference": "019144"
+  },
+  {
+    "id": "14ff6e8e-444d-4184-929f-04cef58eec60",
+    "status": "approved",
+    "amount": 1080,
+    "created_at": "2026-03-03T16:05:59.89216+00:00",
+    "full_name": "Yaditza indave",
+    "reference": "898007"
+  },
+  {
+    "id": "f5f15cce-7109-4afa-a3c7-bf9ef73c82da",
+    "status": "approved",
+    "amount": 1080,
+    "created_at": "2026-03-03T15:36:33.421584+00:00",
+    "full_name": "Marilin Loredana Santos Berbesi ",
+    "reference": "270078"
+  },
+  {
+    "id": "4bc05c48-700e-4bc6-95fe-4e5401180085",
+    "status": "approved",
+    "amount": 1080,
+    "created_at": "2026-03-03T14:36:54.283719+00:00",
+    "full_name": "Wuinder Joel Contreras Medina ",
+    "reference": "798756"
+  },
+  {
+    "id": "aa90fe09-4a5b-4dfa-9dec-e74e1847df26",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-03T14:27:21.169346+00:00",
+    "full_name": "Franyel Barrios ",
+    "reference": "787047"
+  },
+  {
+    "id": "baed6d9e-5684-45fa-98fa-79f115620b5a",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-03T01:32:40.206215+00:00",
+    "full_name": "Willer Jiménez ",
+    "reference": "973424"
+  },
+  {
+    "id": "e016ee57-c87a-4211-b6c3-26a0b22debac",
+    "status": "approved",
+    "amount": 1080,
+    "created_at": "2026-03-03T00:59:54.943225+00:00",
+    "full_name": "Hurven José petit diaz ",
+    "reference": "495467"
+  },
+  {
+    "id": "adc8cedc-4caa-4ae9-a4ef-662493e49852",
+    "status": "rejected",
+    "amount": 540,
+    "created_at": "2026-03-02T23:21:31.0958+00:00",
+    "full_name": "Willer Jiménez ",
+    "reference": "005256"
+  },
+  {
+    "id": "b8706baf-e31f-44c2-a2b3-515b2ecc17cc",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-02T22:08:33.567326+00:00",
+    "full_name": "Deris Josué Zerpa Cortéz ",
+    "reference": "121591"
+  },
+  {
+    "id": "68dadae4-d0a5-47ba-91d1-2194902147e8",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-02T21:59:16.464655+00:00",
+    "full_name": "Luz Angelica olivo Lozada",
+    "reference": "035628"
+  },
+  {
+    "id": "7a50c53b-554f-43b1-a0ad-c1b852928836",
+    "status": "approved",
+    "amount": 1080,
+    "created_at": "2026-03-02T21:53:46.685027+00:00",
+    "full_name": "Karla Travieso ",
+    "reference": "610097"
+  },
+  {
+    "id": "c27d9459-533e-4a2a-b447-42833b5dffd0",
+    "status": "approved",
+    "amount": 2160,
+    "created_at": "2026-03-02T19:12:09.340846+00:00",
+    "full_name": "Jorge navarro ",
+    "reference": "227070"
+  },
+  {
+    "id": "81e62b28-b5f7-4f00-a35a-c2ab60afdef7",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-02T18:18:30.3507+00:00",
+    "full_name": "Julianna Vasquez ",
+    "reference": "682872"
+  },
+  {
+    "id": "91d89a2f-20e7-4fa7-8e99-ec79938c2585",
+    "status": "approved",
+    "amount": 1080,
+    "created_at": "2026-03-02T18:18:23.987072+00:00",
+    "full_name": "Yenifer Madrid ",
+    "reference": "123646"
+  },
+  {
+    "id": "e3d49f13-698d-4f4e-b99f-03695e68fa1b",
+    "status": "approved",
+    "amount": 1080,
+    "created_at": "2026-03-02T17:11:02.262685+00:00",
+    "full_name": "Anais jimenez",
+    "reference": "936225"
+  },
+  {
+    "id": "a4bd373d-bfc1-4cac-94de-04913bec776c",
+    "status": "rejected",
+    "amount": 810,
+    "created_at": "2026-03-02T15:52:27.055921+00:00",
+    "full_name": "asd",
+    "reference": "123455"
+  },
+  {
+    "id": "c6cb8d47-177e-4773-a070-0f6f0de852b2",
+    "status": "approved",
+    "amount": 540,
+    "created_at": "2026-03-02T15:10:21.41551+00:00",
+    "full_name": "Santiago Ramos ",
+    "reference": "002090"
+  },
+  {
+    "id": "a60989ec-2e58-481c-8959-c5b4913c1431",
+    "status": "approved",
+    "amount": 810,
+    "created_at": "2026-03-02T14:56:49.202124+00:00",
+    "full_name": "Deysimar Madrid ",
+    "reference": "314450"
+  },
+  {
+    "id": "951d5512-fadf-4f0f-81e9-b5ba5edf5563",
+    "status": "rejected",
+    "amount": 540,
+    "created_at": "2026-03-02T13:08:11.649095+00:00",
+    "full_name": "AUDITOR FINAL",
+    "reference": "REF998877"
+  }
+]

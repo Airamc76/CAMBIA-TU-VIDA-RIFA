@@ -23,19 +23,7 @@ export const supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
-/**
- * CLIENTE ADMIN (SERVICE ROLE): Solo para gestión de usuarios.
- * Requiere VITE_SUPABASE_SERVICE_ROLE_KEY en .env.local
- */
-const SERVICE_ROLE = ENV.VITE_SUPABASE_SERVICE_ROLE_KEY;
-export const supabaseAdmin = SERVICE_ROLE
-  ? createClient(SUPABASE_URL, SERVICE_ROLE, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
-  : null;
+
 
 export const checkSupabaseConnection = async () => {
   try {

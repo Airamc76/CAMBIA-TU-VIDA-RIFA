@@ -1,4 +1,4 @@
-import { supabase, supabasePublic, supabaseAdmin, SUPABASE_ANON_KEY, SUPABASE_URL } from '../lib/supabase';
+import { supabase, supabasePublic, SUPABASE_ANON_KEY, SUPABASE_URL } from '../lib/supabase';
 import { Raffle } from '../types';
 import { handleDBError } from './dbHelpers';
 
@@ -31,8 +31,7 @@ export const raffleRepository = {
     },
 
     async deleteRaffle(id: string) {
-        // Usamos supabaseAdmin para bypass de RLS si está disponible
-        const client = supabaseAdmin || supabase;
+        const client = supabase;
         const { error, count } = await client
             .from('raffles')
             .update({ status: 'deleted' })

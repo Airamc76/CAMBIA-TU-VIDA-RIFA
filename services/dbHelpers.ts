@@ -1,4 +1,4 @@
-import { supabase, supabasePublic, supabaseAdmin } from '../lib/supabase';
+import { supabase, supabasePublic } from '../lib/supabase';
 import { AdminRole } from '../types';
 import { AppError } from '../utils/errors';
 
