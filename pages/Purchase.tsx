@@ -23,26 +23,60 @@ const Purchase: React.FC = () => {
     file: null as File | null
   });
 
+  // Tasa de cambio (Dinámica)
+  const [dolarRate, setDolarRate] = useState(425.29); // Fallback actualizado a 2026
+  const [isRateLoading, setIsRateLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRate = async () => {
+      try {
+        const res = await fetch('https://ve.dolarapi.com/v1/dolares/binance');
+        if (!res.ok) throw new Error('API Error');
+        const data = await res.json();
+
+        // DolarApi.com structure: { promedio: number } or { paralelo: number } etc.
+        const rate = data.promedio || data.paralelo || data.price;
+        if (rate && typeof rate === 'number' && rate > 0) {
+          setDolarRate(rate);
+        }
+      } catch (err) {
+        console.warn("No se pudo obtener la tasa en tiempo real, usando fallback de 2026:", err);
+      } finally {
+        setIsRateLoading(false);
+      }
+    };
+    fetchRate();
+  }, []);
+
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (raffle && form.count < (raffle.min_tickets || 3)) {
-      setForm(prev => ({ ...prev, count: raffle.min_tickets || 3 }));
-    }
-  }, [raffle]);
-
   if (!raffle) return null;
 
-  const minTix = raffle.min_tickets || 3;
+  // Lógica de mínimo dinámico: Pago Móvil usa raffle.min_tickets, Binance requiere $20
+  const baseMinTix = raffle.min_tickets || 2;
+  const binanceMinTix = Math.ceil(20 / (raffle.ticket_price / dolarRate));
+  const minTix = form.paymentMethod === 'binance' ? binanceMinTix : baseMinTix;
+
+  useEffect(() => {
+    if (raffle) {
+      if (form.count < minTix) {
+        setForm(prev => ({ ...prev, count: minTix }));
+      }
+    }
+  }, [raffle, form.paymentMethod, dolarRate, minTix]);
+
+
   const remaining = Math.max(0, raffle.total_tickets - (raffle.sold_tickets || 0));
   const leftAfterPurchase = remaining - form.count;
   const isLeavingOrphans = leftAfterPurchase > 0 && leftAfterPurchase < minTix;
   const isOverStock = form.count > remaining;
   const isInvalidAmount = isOverStock || isLeavingOrphans || form.count < minTix;
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,16 +231,36 @@ const Purchase: React.FC = () => {
                 <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Compra {remaining} o deja al menos {minTix}.</span>
               ) : isOverStock ? (
                 <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ Máximo {remaining} disponibles.</span>
+              ) : form.count < minTix ? (
+                <span className="text-red-600 block bg-red-100/50 py-2 rounded-lg px-3">⚠️ El mínimo para {form.paymentMethod === 'binance' ? 'Binance ($20)' : 'este método'} son {minTix} tickets.</span>
               ) : (
-                <span className="text-slate-400">Total a Pagar: <span className="text-blue-600 text-lg font-black ml-1">{(raffle.ticket_price * form.count).toLocaleString()} {raffle.currency || 'Bs'}</span></span>
+                <span className="text-slate-400">
+                  Total a Pagar:
+                  <span className="text-blue-600 text-lg font-black ml-1">
+                    {(raffle.ticket_price * form.count).toLocaleString()} {raffle.currency || 'Bs'}
+                    {form.paymentMethod === 'binance' && (
+                      <span className="text-amber-600 ml-2">
+                        ≈ {((raffle.ticket_price * form.count) / dolarRate).toFixed(2)} USDT
+                      </span>
+                    )}
+                  </span>
+                </span>
               )}
+
 
               <div className="pt-2 border-t border-slate-50">
                 <span className="text-blue-600 font-black text-[11px] bg-blue-50 px-4 py-2 rounded-full inline-block">
                   Mínimo de compra: {minTix} tickets
+                  {form.paymentMethod === 'binance' && (
+                    <span className="ml-1 text-[9px] opacity-70">
+                      (Equiv. a $20 USD • Tasa: {dolarRate.toLocaleString()} Bs)
+                    </span>
+                  )}
                 </span>
+
               </div>
             </div>
+
           </div>
         </div>
 
@@ -239,55 +293,108 @@ const Purchase: React.FC = () => {
               <Input label="WhatsApp / Celular" required placeholder="04121234567" value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} />
             </div>
 
-            {/* Datos de Pago Móvil */}
-            <div className="space-y-4 bg-blue-50/50 p-8 rounded-[2.5rem] border border-blue-100/50">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                </div>
-                <h3 className="font-black text-slate-900 uppercase tracking-[0.2em] text-[10px]">Datos de Pago Móvil</h3>
-              </div>
+            {/* Datos de Pago (Dinámicos) */}
+            <div className="space-y-4 bg-blue-50/50 p-8 rounded-[2.5rem] border border-blue-100/50 min-h-[220px]">
+              {form.paymentMethod === 'pago_movil' ? (
+                <>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    </div>
+                    <h3 className="font-black text-slate-900 uppercase tracking-[0.2em] text-[10px]">Datos de Pago Móvil</h3>
+                  </div>
 
-              <div className="space-y-4">
-                <div className="group cursor-pointer">
-                  <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Cédula de Identidad</span>
-                  <div className="flex items-center justify-between">
-                    <span className="font-black text-slate-900 text-lg">26.172.877</span>
-                    <button type="button" onClick={() => navigator.clipboard.writeText('26172877')} className="opacity-40 group-hover:opacity-100 transition-all text-blue-600"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg></button>
+                  <div className="space-y-4">
+                    <div className="group cursor-pointer">
+                      <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Cédula de Identidad</span>
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-slate-900 text-lg">26.172.877</span>
+                        <button type="button" onClick={() => navigator.clipboard.writeText('26172877')} className="opacity-40 group-hover:opacity-100 transition-all text-blue-600"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg></button>
+                      </div>
+                    </div>
+                    <div className="group cursor-pointer">
+                      <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Teléfono / Pago Móvil</span>
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-slate-900 text-lg">0414 017 0156</span>
+                        <button type="button" onClick={() => navigator.clipboard.writeText('04140170156')} className="opacity-40 group-hover:opacity-100 transition-all text-blue-600"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg></button>
+                      </div>
+                    </div>
+                    <div className="group cursor-pointer border-t border-slate-50 pt-3">
+                      <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Banco</span>
+                      <div className="flex items-center gap-4">
+                        <img
+                          src="/bank_logo_r4.png"
+                          alt="Logo R4"
+                          onClick={() => setIsLogoModalOpen(true)}
+                          className="w-14 h-14 object-contain rounded-xl bg-white p-1.5 border border-slate-100 shadow-md cursor-zoom-in hover:scale-105 transition-transform"
+                        />
+                        <span className="font-black text-slate-900 text-[10px] block uppercase tracking-tight">0169 R4 BANCO MICRO FINANCIERO</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="animate-in fade-in zoom-in duration-300">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-[#F3BA2F] rounded-2xl flex items-center justify-center shadow-lg border-2 border-white/20">
+                      <img
+                        src="https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/white/bnb.png"
+                        className="w-8 h-8 object-contain"
+                        alt="Binance"
+                      />
+                    </div>
+                    <h3 className="font-black text-slate-900 uppercase tracking-[0.2em] text-[10px]">Datos de Binance Pay</h3>
+                  </div>
+
+
+                  <div className="space-y-6">
+                    <div className="bg-amber-100/50 p-4 rounded-2xl border border-amber-200">
+                      <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-1 flex items-center gap-2">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        Aviso Importante
+                      </p>
+                      <p className="text-[9px] text-amber-900 font-bold leading-relaxed">
+                        Para pagos vía Binance, la compra mínima es de <span className="underline">20 USDT</span>. Asegúrate de transferir el monto correcto para validar tu reporte.
+                      </p>
+                    </div>
+
+                    <div className="group cursor-pointer">
+                      <span className="block text-[8px] font-black text-yellow-600 uppercase tracking-widest mb-1">Binance ID</span>
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-slate-900 text-3xl tracking-tighter">1221823111</span>
+                        <button type="button" onClick={() => navigator.clipboard.writeText('1221823111')} className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-700 hover:scale-110 shadow-sm transition-all">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="group cursor-pointer">
-                  <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Teléfono / Pago Móvil</span>
-                  <div className="flex items-center justify-between">
-                    <span className="font-black text-slate-900 text-lg">0414 017 0156</span>
-                    <button type="button" onClick={() => navigator.clipboard.writeText('04140170156')} className="opacity-40 group-hover:opacity-100 transition-all text-blue-600"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg></button>
-                  </div>
-                </div>
-                <div className="group cursor-pointer border-t border-slate-50 pt-3">
-                  <span className="block text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Banco</span>
-                  <div className="flex items-center gap-4">
-                    <img
-                      src="/bank_logo_r4.png"
-                      alt="Logo R4"
-                      onClick={() => setIsLogoModalOpen(true)}
-                      className="w-14 h-14 object-contain rounded-xl bg-white p-1.5 border border-slate-100 shadow-md cursor-zoom-in hover:scale-105 transition-transform"
-                    />
-                    <span className="font-black text-slate-900 text-[10px] block uppercase tracking-tight">0169 R4 BANCO MICRO FINANCIERO</span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
+
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Método Utilizado</label>
                 <select
-                  className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all opacity-75 cursor-not-allowed"
+                  className="w-full p-4 bg-white border-2 border-slate-100 rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer shadow-sm hover:border-blue-200"
                   value={form.paymentMethod}
-                  disabled
+                  onChange={e => {
+                    const method = e.target.value;
+                    setForm(prev => {
+                      const newMin = method === 'binance' ? binanceMinTix : baseMinTix;
+                      return {
+                        ...prev,
+                        paymentMethod: method,
+                        count: prev.count < newMin ? newMin : prev.count
+                      };
+                    });
+                  }}
                 >
                   <option value="pago_movil">Pago Móvil</option>
+                  <option value="binance">Binance Pay (Min $20)</option>
                 </select>
+
               </div>
               <Input
                 label="Código de Referencia"

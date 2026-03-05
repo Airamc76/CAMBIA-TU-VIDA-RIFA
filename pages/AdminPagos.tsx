@@ -949,6 +949,10 @@ const AdminPagos: React.FC = () => {
                           <span className="font-black text-slate-900 text-lg tracking-tight leading-tight">{p.user}</span>
                           <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{p.raffle}</span>
                           <span className="text-[11px] text-blue-600 font-black mt-1 opacity-80 uppercase tracking-wider">REF: {p.ref || 'S/N'}</span>
+                          <span className={`text-[10px] font-black uppercase tracking-widest mt-1 ${p.paymentMethod === 'binance' ? 'text-amber-500' : 'text-slate-400'}`}>
+                            {p.paymentMethod === 'binance' ? 'Binance Pay' : 'Pago Móvil'}
+                          </span>
+
                         </div>
                       </td>
                       <td className="px-10 py-8 text-center">
@@ -1129,6 +1133,10 @@ const AdminPagos: React.FC = () => {
                                 <p className="font-black text-slate-900 text-sm truncate leading-tight">{item.user}</p>
                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">{item.raffle}</p>
                                 <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest mt-0.5">REF: {item.ref || 'S/N'}</p>
+                                <p className={`text-[9px] font-black uppercase tracking-widest mt-0.5 ${item.paymentMethod === 'binance' ? 'text-amber-500' : 'text-slate-300'}`}>
+                                  {item.paymentMethod === 'binance' ? 'Binance' : 'P. Móvil'}
+                                </p>
+
                               </div>
                               <div className="text-right shrink-0">
                                 <p className={`font-black text-sm tracking-tighter ${item.status === 'approved' ? 'text-green-600' : 'text-rose-400 line-through opacity-60'

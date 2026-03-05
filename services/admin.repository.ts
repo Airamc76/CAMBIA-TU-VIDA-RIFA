@@ -32,7 +32,9 @@ export const adminRepository = {
             date: new Date(p.created_at).toLocaleDateString(),
             ticketsCount: p.ticket_qty || 0,
             status: p.status === 'approved' ? 'aprobado' : p.status === 'rejected' ? 'rechazado' : 'pendiente',
+            paymentMethod: p.payment_method,
             evidence_url: p.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${p.receipt_path}` : null
+
         }));
     },
 
@@ -109,9 +111,12 @@ export const adminRepository = {
                 amount: Number(p.amount || 0),
                 ticketsCount: p.ticket_qty,
                 status: p.status,
+
+                paymentMethod: p.payment_method,
                 evidence_url: p.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${p.receipt_path}` : null,
                 ref: p.reference || 'S/N',
                 time: localDate.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })
+
             };
 
             grouped[dateKey].items.push(item);
@@ -194,10 +199,12 @@ export const adminRepository = {
             amount: p.amount,
             ticketsCount: p.ticket_qty,
             status: p.status === 'approved' ? 'aprobado' : p.status === 'rejected' ? 'rechazado' : 'pendiente',
+            paymentMethod: p.payment_method,
             ref: p.reference || 'S/N',
             evidence_url: p.receipt_path ? `${SUPABASE_URL}/storage/v1/object/public/comprobantes/${p.receipt_path}` : null,
             date: new Date(p.created_at).toLocaleDateString(),
             assignedNumbers: p.assigned_numbers || []
+
         }));
     },
 

@@ -19,7 +19,9 @@ export interface PurchaseData {
   date: string;
   ticketsCount: number;
   status: 'pendiente' | 'aprobado' | 'rechazado';
+  paymentMethod?: string;
   evidence_url?: string;
+
   evidence_path?: string;
   assignedNumbers?: number[];
 }
